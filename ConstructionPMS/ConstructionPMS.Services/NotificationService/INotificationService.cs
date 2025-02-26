@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace ConstructionPMS.Services
+namespace ConstructionPMS.Services.NotificationService
 {
     public interface INotificationService
     {

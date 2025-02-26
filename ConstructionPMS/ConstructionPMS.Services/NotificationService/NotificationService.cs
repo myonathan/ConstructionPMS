@@ -1,21 +1,28 @@
-﻿using System.Threading.Tasks;
-using ConstructionPMS.Shared;
-using ConstructionPMS.Shared.Exceptions;
-using ConstructionPMS.Shared.Extensions;
+﻿using System;
+using System.Threading.Tasks;
+using ConstructionPMS.Infrastructure.Kafka;
+using ConstructionPMS.Services.NotificationService;
 
-namespace ConstructionPMS.Services
+namespace ConstructionPMS.Services.NotificationService
 {
     public class NotificationService : INotificationService
     {
+        private readonly IKafkaProducerService _kafkaProducer;
+
+        public NotificationService(IKafkaProducerService kafkaProducer)
+        {
+            _kafkaProducer = kafkaProducer ?? throw new ArgumentNullException(nameof(kafkaProducer));
+        }
+
         public async Task SendNotificationAsync(string message)
         {
-            if (message.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(message))
             {
-                throw new CustomException("Notification message cannot be null or empty.");
+                throw new ArgumentException("Message cannot be null or empty.", nameof(message));
             }
 
-            // Logic to send notification (e.g., via email, SMS, etc.)
-            await Task.CompletedTask; // Placeholder for async operation
+            // Send the notification message to the Kafka topic
+            await _kafkaProducer.ProduceAsync("notifications", message);
         }
     }
 }

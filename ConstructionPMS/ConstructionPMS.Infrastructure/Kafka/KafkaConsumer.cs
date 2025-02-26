@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ConstructionPMS.Infrastructure.Kafka
 {
-    public class KafkaConsumer
+    public class KafkaConsumer : IKafkaConsumerService
     {
         private readonly IConsumer<Null, string> _consumer;
 
@@ -21,7 +21,7 @@ namespace ConstructionPMS.Infrastructure.Kafka
             _consumer = new ConsumerBuilder<Null, string>(config).Build();
         }
 
-        public void Consume(string topic, CancellationToken cancellationToken)
+        public async Task ConsumeAsync(string topic, CancellationToken cancellationToken)
         {
             _consumer.Subscribe(topic);
 

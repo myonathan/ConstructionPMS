@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace ConstructionPMS.Infrastructure.Kafka
 {
-    public class KafkaProducer
+    public class KafkaProducer : IKafkaProducerService
     {
         private readonly IProducer<Null, string> _producer;
 

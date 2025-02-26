@@ -7,9 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 
-namespace ConstructionPMS.Infrastructure.Services
+namespace ConstructionPMS.Infrastructure.Extensions
 {
-    public static class InfrastructureServiceCollectionExtensions
+    public static class InfrastructureServiceCollectionExtension
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
@@ -27,10 +27,12 @@ namespace ConstructionPMS.Infrastructure.Services
             // Register repositories
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-            services.AddScoped < IUserRepository, UserRepository > ();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
 
             // Register Kafka producer and consumer
+            services.AddSingleton<IKafkaProducerService>(provider => new KafkaProducer(configuration["Kafka:BootstrapServers"]));
+
             services.AddSingleton<KafkaProducer>(provider => new KafkaProducer(configuration["Kafka:BootstrapServers"]));
             services.AddSingleton<KafkaConsumer>(provider => new KafkaConsumer(configuration["Kafka:BootstrapServers"], configuration["Kafka:GroupId"]));
 
