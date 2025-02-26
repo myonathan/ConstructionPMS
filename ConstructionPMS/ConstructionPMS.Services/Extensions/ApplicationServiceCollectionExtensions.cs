@@ -6,7 +6,7 @@ namespace ConstructionPMS.Services.Extensions
 {
     public static class ApplicationServiceCollectionExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Register application services
             services.AddScoped<NotificationService.NotificationService>();
