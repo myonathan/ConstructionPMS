@@ -59,7 +59,7 @@ namespace ConstructionPMS.API
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "ConstructionPMS API V1");
-                c.RoutePrefix = string.Empty; // Set the Swagger UI at the app's root
+                c.RoutePrefix = "swagger"; // Set the Swagger UI at the app's root
             });
 
             app.UseAuthorization();
