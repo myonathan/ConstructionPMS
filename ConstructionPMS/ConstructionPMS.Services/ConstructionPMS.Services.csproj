@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConstructionPMS.Domain\ConstructionPMS.Domain.csproj" />
+    <ProjectReference Include="..\ConstructionPMS.Infrastructure\ConstructionPMS.Infrastructure.csproj" />
+    <ProjectReference Include="..\ConstructionPMS.Shared\ConstructionPMS.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+@ConstructionPMS.Api_HostAddress = http://localhost:5033
+
+GET {{ConstructionPMS.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
