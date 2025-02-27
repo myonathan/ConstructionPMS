@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
-using ConstructionPMS.Domain.Interfaces;
-using ConstructionPMS.Infrastructure.Repositories;
-using ConstructionPMS.Shared.Exceptions;
+using ConstructionPMS.Infrastructure.Repositories; // Assuming you have a repository layer
+using System.ComponentModel.DataAnnotations;
 
 namespace ConstructionPMS.Services
 {
@@ -17,40 +16,36 @@ namespace ConstructionPMS.Services
             _projectRepository = projectRepository;
         }
 
+        public async Task<Project> CreateProjectAsync(Project project)
+        {
+            // Validate the project
+            project.Validate();
+
+            // Add the project to the repository
+            await _projectRepository.AddAsync(project);
+            return project;
+        }
+
         public async Task<IEnumerable<Project>> GetAllProjectsAsync()
         {
             return await _projectRepository.GetAllAsync();
         }
 
-        public async Task<Project> GetProjectByIdAsync(Guid projectId)
+        public async Task<Project> GetProjectByIdAsync(int projectId)
         {
-            var project = await _projectRepository.GetByIdAsync(projectId);
-            if (project == null)
-            {
-                throw new CustomException($"Project with ID {projectId} not found.");
-            }
-            return project;
-        }
-
-        public async Task<Project> CreateProjectAsync(Project project)
-        {
-            if (project == null)
-            {
-                throw new CustomException("Project cannot be null.");
-            }
-            return await _projectRepository.AddAsync(project);
+            return await _projectRepository.GetByIdAsync(projectId);
         }
 
         public async Task UpdateProjectAsync(Project project)
         {
-            if (project == null)
-            {
-                throw new CustomException("Project cannot be null.");
-            }
+            // Validate the project
+            project.Validate();
+
+            // Update the project in the repository
             await _projectRepository.UpdateAsync(project);
         }
 
-        public async Task DeleteProjectAsync(Guid projectId)
+        public async Task DeleteProjectAsync(int projectId)
         {
             await _projectRepository.DeleteAsync(projectId);
         }

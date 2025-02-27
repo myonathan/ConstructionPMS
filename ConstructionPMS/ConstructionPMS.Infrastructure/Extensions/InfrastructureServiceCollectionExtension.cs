@@ -26,7 +26,6 @@ namespace ConstructionPMS.Infrastructure.Extensions
 
             // Register repositories
             services.AddScoped<IProjectRepository, ProjectRepository>();
-            services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
 

@@ -11,7 +11,6 @@ namespace ConstructionPMS.Services.Extensions
             // Register application services
             services.AddScoped<NotificationService.NotificationService>();
             services.AddScoped<ProjectService>();
-            services.AddScoped<TaskService>();
             services.AddScoped<UserService>();
 
             return services;

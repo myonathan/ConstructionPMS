@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
-using ConstructionPMS.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ConstructionPMS.Infrastructure.Repositories
 {
     public class ProjectRepository : IProjectRepository
     {
-        private readonly ConstructionDbContext _context;
+        private readonly ConstructionDbContext _context; // Assuming you have an ApplicationDbContext for EF Core
 
         public ProjectRepository(ConstructionDbContext context)
         {
             _context = context;
+        }
+
+        public async Task AddAsync(Project project)
+        {
+            await _context.Projects.AddAsync(project);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Project>> GetAllAsync()
@@ -21,16 +27,9 @@ namespace ConstructionPMS.Infrastructure.Repositories
             return await _context.Projects.ToListAsync();
         }
 
-        public async Task<Project> GetByIdAsync(Guid projectId)
+        public async Task<Project> GetByIdAsync(int projectId)
         {
             return await _context.Projects.FindAsync(projectId);
-        }
-
-        public async Task<Project> AddAsync(Project project)
-        {
-            var addedEntity = await _context.Projects.AddAsync(project);
-            await _context.SaveChangesAsync(); // Save changes to the database
-            return addedEntity.Entity; // Return the added entity
         }
 
         public async Task UpdateAsync(Project project)
@@ -39,7 +38,7 @@ namespace ConstructionPMS.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid projectId)
+        public async Task DeleteAsync(int projectId)
         {
             var project = await GetByIdAsync(projectId);
             if (project != null)

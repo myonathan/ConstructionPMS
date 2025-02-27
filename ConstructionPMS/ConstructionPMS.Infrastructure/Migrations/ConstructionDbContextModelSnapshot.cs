@@ -45,53 +45,46 @@ namespace ConstructionPMS.Infrastructure.Migrations
 
             modelBuilder.Entity("ConstructionPMS.Domain.Entities.Project", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("ProjectId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Project", (string)null);
-                });
-
-            modelBuilder.Entity("ConstructionPMS.Domain.Entities.ProjectTask", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Title")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProjectId"));
+
+                    b.Property<DateTime>("ConstructionStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OtherCategory")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.Property<int>("ProjectCategory")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("ProjectId");
+                    b.Property<Guid>("ProjectCreatorId")
+                        .HasColumnType("uuid");
 
-                    b.ToTable("ProjectTask", (string)null);
+                    b.Property<string>("ProjectDetails")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ProjectLocation")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ProjectName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("ProjectStage")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ProjectId");
+
+                    b.ToTable("Project", (string)null);
                 });
 
             modelBuilder.Entity("ConstructionPMS.Domain.Entities.User", b =>
@@ -115,20 +108,6 @@ namespace ConstructionPMS.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User", (string)null);
-                });
-
-            modelBuilder.Entity("ConstructionPMS.Domain.Entities.ProjectTask", b =>
-                {
-                    b.HasOne("ConstructionPMS.Domain.Entities.Project", null)
-                        .WithMany("Tasks")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ConstructionPMS.Domain.Entities.Project", b =>
-                {
-                    b.Navigation("Tasks");
                 });
 #pragma warning restore 612, 618
         }

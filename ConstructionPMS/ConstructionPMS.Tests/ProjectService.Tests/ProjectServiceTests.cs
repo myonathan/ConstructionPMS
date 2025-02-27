@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Infrastructure.Repositories;
 using ConstructionPMS.Services;
-using ConstructionPMS.Shared.Exceptions;
 using Moq;
 using Xunit;
 
@@ -22,52 +22,96 @@ namespace ConstructionPMS.Services.Tests
         }
 
         [Fact]
-        public async Task CreateProjectAsync_ValidProject_ShouldReturnCreatedProject()
+        public async Task CreateProject_ShouldAddProject_WhenValid()
         {
             // Arrange
-            var project = new Project("Test Project", "Test Project Description", DateTime.Now, DateTime.Now.AddMonths(1));
-            _projectRepositoryMock.Setup(repo => repo.AddAsync(project)).ReturnsAsync(project);
+            var project = new Project
+            {
+                ProjectName = "New Project",
+                ProjectLocation = "Location A",
+                ProjectStage = ProjectStage.Concept,
+                ProjectCategory = ProjectCategory.Education,
+                ConstructionStartDate = DateTime.UtcNow.AddDays(30), // Future date
+                ProjectDetails = "Project details here.",
+                ProjectCreatorId = Guid.NewGuid()
+            };
 
             // Act
-            var result = await _projectService.CreateProjectAsync(project);
+            await _projectService.CreateProjectAsync(project);
 
             // Assert
-            Assert.Equal(project, result);
+            _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>()), Times.Once);
         }
 
         [Fact]
-        public async Task CreateProjectAsync_NullProject_ShouldThrowCustomException()
+        public async Task CreateProject_ShouldThrowValidationException_WhenConstructionStartDateIsInThePast()
         {
             // Arrange
-            Project project = null;
+            var project = new Project
+            {
+                ProjectName = "New Project",
+                ProjectLocation = "Location A",
+                ProjectStage = ProjectStage.Concept,
+                ProjectCategory = ProjectCategory.Education,
+                ConstructionStartDate = DateTime.UtcNow.AddDays(-1), // Past date
+                ProjectDetails = "Project details here.",
+                ProjectCreatorId = Guid.NewGuid()
+            };
 
             // Act & Assert
-            await Assert.ThrowsAsync<CustomException>(() => _projectService.CreateProjectAsync(project));
+            await Assert.ThrowsAsync<ValidationException>(() => _projectService.CreateProjectAsync(project));
         }
 
         [Fact]
-        public async Task GetProjectByIdAsync_ExistingId_ShouldReturnProject()
+        public async Task GetAllProjects_ShouldReturnListOfProjects()
         {
             // Arrange
-            var project = new Project("Test Project", "Test Project Description", DateTime.Now, DateTime.Now.AddMonths(1));
-            _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id)).ReturnsAsync(project);
+            var projects = new List<Project>
+            {
+                new Project { ProjectName = "Project 1" },
+                new Project { ProjectName = "Project 2" }
+            };
+
+            _projectRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(projects);
 
             // Act
-            var result = await _projectService.GetProjectByIdAsync(project.Id);
+            var result = await _projectService.GetAllProjectsAsync();
 
             // Assert
-            Assert.Equal(project, result);
+            Assert.Equal(2, result.Count());
         }
 
         [Fact]
-        public async Task GetProjectByIdAsync_NonExistingId_ShouldThrowCustomException()
+        public async Task GetProjectById_ShouldReturnProject_WhenExists()
         {
             // Arrange
-            var projectId = Guid.NewGuid();
+            var projectId = 123456; // Example project ID
+            var project = new Project { ProjectName = "Project 1" };
+
+            _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.ProjectId)).ReturnsAsync(project);
+
+            // Act
+            var result = await _projectService.GetProjectByIdAsync(project.ProjectId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("Project 1", result.ProjectName);
+        }
+
+        [Fact]
+        public async Task GetProjectById_ShouldReturnNull_WhenNotExists()
+        {
+            // Arrange
+            var projectId = 123456; // Example project ID
             _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(projectId)).ReturnsAsync((Project)null);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<CustomException>(() => _projectService.GetProjectByIdAsync(projectId));
+            // Act
+            var result = await _projectService.GetProjectByIdAsync(projectId);
+
+            // Assert
+            Assert.Null(result);
         }
+
+        // Additional tests for UpdateProject and DeleteProject can be added here
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ConstructionPMS.Services;
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Services.NotificationService;
+using System.ComponentModel.DataAnnotations;
 
 namespace ConstructionPMS.Api.Controllers
 {
@@ -29,7 +30,7 @@ namespace ConstructionPMS.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProjectById(Guid id)
+        public async Task<ActionResult<Project>> GetProjectById(int id)
         {
             var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null)
@@ -42,32 +43,51 @@ namespace ConstructionPMS.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Project>> CreateProject([FromBody] Project project)
         {
-            var createdProject = await _projectService.CreateProjectAsync(project);
+            if (project == null)
+            {
+                return BadRequest("Project cannot be null.");
+            }
 
-            // Send a notification after creating a project
-            await _notificationService.SendNotificationAsync($"Project '{createdProject.Name}' has been created.");
+            try
+            {
+                var createdProject = await _projectService.CreateProjectAsync(project);
 
-            return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.Id }, createdProject);
+                // Send a notification after creating a project
+                await _notificationService.SendNotificationAsync($"Project '{createdProject.ProjectName}' has been created.");
+
+                return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.ProjectId }, createdProject);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProject(Guid id, [FromBody] Project project)
+        public async Task<IActionResult> UpdateProject(int id, [FromBody] Project project)
         {
-            if (id != project.Id)
+            if (id != project.ProjectId)
             {
-                return BadRequest();
+                return BadRequest("Project ID mismatch.");
             }
 
-            await _projectService.UpdateProjectAsync(project);
+            try
+            {
+                await _projectService.UpdateProjectAsync(project);
 
-            // Send a notification after updating a project
-            await _notificationService.SendNotificationAsync($"Project '{project.Name}' has been updated.");
+                // Send a notification after updating a project
+                await _notificationService.SendNotificationAsync($"Project '{project.ProjectName}' has been updated.");
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProject(Guid id)
+        public async Task<IActionResult> DeleteProject(int id)
         {
             var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null)
@@ -78,7 +98,7 @@ namespace ConstructionPMS.Api.Controllers
             await _projectService.DeleteProjectAsync(id);
 
             // Send a notification after deleting a project
-            await _notificationService.SendNotificationAsync($"Project '{project.Name}' has been deleted.");
+            await _notificationService.SendNotificationAsync($"Project '{project.ProjectName}' has been deleted.");
 
             return NoContent();
         }

@@ -7,10 +7,10 @@ namespace ConstructionPMS.Infrastructure.Repositories
 {
     public interface IProjectRepository
     {
+        Task AddAsync(Project project);
         Task<IEnumerable<Project>> GetAllAsync();
-        Task<Project> GetByIdAsync(Guid projectId);
-        Task<Project> AddAsync(Project project); // Ensure this returns Project
+        Task<Project> GetByIdAsync(int projectId);
         Task UpdateAsync(Project project);
-        Task DeleteAsync(Guid projectId);
+        Task DeleteAsync(int projectId);
     }
 }

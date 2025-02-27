@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -29,15 +30,20 @@ namespace ConstructionPMS.Infrastructure.Migrations
                 name: "Project",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    ProjectId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ProjectName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    ProjectLocation = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    ProjectStage = table.Column<int>(type: "integer", nullable: false),
+                    ProjectCategory = table.Column<int>(type: "integer", nullable: false),
+                    OtherCategory = table.Column<string>(type: "text", nullable: false),
+                    ConstructionStartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ProjectDetails = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    ProjectCreatorId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Project", x => x.Id);
+                    table.PrimaryKey("PK_Project", x => x.ProjectId);
                 });
 
             migrationBuilder.CreateTable(
@@ -53,32 +59,6 @@ namespace ConstructionPMS.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_User", x => x.Id);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "ProjectTask",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProjectTask", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProjectTask_Project_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Project",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProjectTask_ProjectId",
-                table: "ProjectTask",
-                column: "ProjectId");
         }
 
         /// <inheritdoc />
@@ -88,13 +68,10 @@ namespace ConstructionPMS.Infrastructure.Migrations
                 name: "Notification");
 
             migrationBuilder.DropTable(
-                name: "ProjectTask");
+                name: "Project");
 
             migrationBuilder.DropTable(
                 name: "User");
-
-            migrationBuilder.DropTable(
-                name: "Project");
         }
     }
 }
