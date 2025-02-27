@@ -1,4 +1,5 @@
-﻿using ConstructionPMS.Services;
+﻿using Confluent.Kafka;
+using ConstructionPMS.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +10,20 @@ namespace ConstructionPMS.Services.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Register application services
-            services.AddScoped<NotificationService.NotificationService>();
-            services.AddScoped<ProjectService>();
-            services.AddScoped<UserService>();
+            services.AddScoped<NotificationService.INotificationService, NotificationService.NotificationService>();
+            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IUserService, UserService>();
+
+            // Register the Kafka producer
+            services.AddSingleton<IProducer<Null, string>>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                var producerConfig = new ProducerConfig
+                {
+                    BootstrapServers = configuration["Kafka:BootstrapServers"] // Use the configuration value
+                };
+                return new ProducerBuilder<Null, string>(producerConfig).Build();
+            });
 
             return services;
         }

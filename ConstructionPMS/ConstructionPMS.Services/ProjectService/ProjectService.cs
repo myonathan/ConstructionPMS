@@ -5,16 +5,19 @@ using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Infrastructure.Repositories;
 using System.ComponentModel.DataAnnotations;
 using Nest;
+using Microsoft.Extensions.Configuration;
 
 namespace ConstructionPMS.Services
 {
     public class ProjectService : IProjectService
     {
+        private readonly IConfiguration _configuration;
         private readonly IProjectRepository _projectRepository;
         private readonly IElasticClient _elasticClient; // Elasticsearch client
 
-        public ProjectService(IProjectRepository projectRepository, IElasticClient elasticClient)
+        public ProjectService(IConfiguration configuration, IProjectRepository projectRepository, IElasticClient elasticClient)
         {
+            _configuration = configuration;
             _projectRepository = projectRepository;
             _elasticClient = elasticClient;
         }
@@ -57,7 +60,7 @@ namespace ConstructionPMS.Services
         {
             // Define the search request
             var searchResponse = await _elasticClient.SearchAsync<Project>(s => s
-                .Index("projects") // The index name in Elasticsearch
+                .Index(_configuration["Elasticsearch:IndexName"]) // The index name in Elasticsearch
                 .From(0) // Starting from the first record
                 .Size(1000) // Limit the number of records returned
                 .Sort(so => so

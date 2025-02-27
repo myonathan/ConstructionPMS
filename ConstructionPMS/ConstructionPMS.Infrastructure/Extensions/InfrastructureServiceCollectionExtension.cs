@@ -28,7 +28,7 @@ namespace ConstructionPMS.Infrastructure.Extensions
 
             // Register repositories
             services.AddScoped<IProjectRepository, ProjectRepository>();
-            services.AddScoped < IUserRepository, UserRepository > ();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             // Retrieve Kafka configuration values
             var kafkaSettings = new
