@@ -16,12 +16,13 @@ export interface Project {
 interface User {
   id: string;
   email: string;
+  token: string; // Include token in the User interface
 }
 
 const store = createStore({
   state: {
     projects: [] as Project[],
-    user: null as User | null, // Add user state
+    user: null as User | null, // User state
   },
   mutations: {
     setProjects(state, projects: Project[]) {
@@ -45,34 +46,59 @@ const store = createStore({
   },
   actions: {
     async fetchProjects({ commit }) {
-      const response = await axios.get('/api/projects');
+      const response = await axios.get('/api/projects', {
+        headers: {
+          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
+        }
+      });
       commit('setProjects', response.data);
     },
     async createProject({ commit }, project: Project) {
-      const response = await axios.post('/api/projects', project);
+      const response = await axios.post('/api/projects', project, {
+        headers: {
+          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
+        }
+      });
       commit('addProject', response.data);
     },
     async updateProject({ commit }, project: Project) {
-      await axios.put(`/api/projects/${project.projectId}`, project);
+      await axios.put(`/api/projects/${project.projectId}`, project, {
+        headers: {
+          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
+        }
+      });
       commit('updateProject', project);
     },
     async deleteProject({ commit }, projectId: number) {
-      await axios.delete(`/api/projects/${projectId}`);
+      await axios.delete(`/api/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
+        }
+      });
       commit('deleteProject', projectId);
     },
     async login({ commit }, { email, password }) {
       try {
-        const response = await axios.post('/api/login', { email, password });
-        const user = response.data; // Assuming the response contains user data
-        commit('setUser ', user);
+        const response = await axios.post('https://localhost:7188/api/Auth/login', { email, password });
+        
+        // Assuming the response contains user ID, email, and token
+        const user = {
+          id: response.data.id, // User ID
+          email: response.data.email, // User email
+          token: response.data.token // User token
+        };
+        
+        commit('setUser ', user); // Set user state with token (removed space)
+        
+        // Optionally, you can set the token in the Axios default headers for future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+        
       } catch (error) {
         console.error('Login failed:', error);
-        throw error; // Rethrow the error to handle it in the component
+        
+        // Optionally, you can throw a more descriptive error
+        throw new Error('Login failed. Please check your credentials and try again.');
       }
-    },
-    async logout({ commit }) {
-      await axios.post('/api/logout'); // Call your logout API
-      commit('setUser ', null); // Clear user state
     },
   },
 });

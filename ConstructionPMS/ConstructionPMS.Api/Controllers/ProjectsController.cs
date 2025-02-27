@@ -8,11 +8,13 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConstructionPMS.Exceptions;
+using Microsoft.AspNetCore.Cors;
 
 namespace ConstructionPMS.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors("AllowAllOrigins")]
     public class ProjectsController : ControllerBase
     {
         private readonly IConfiguration _configuration;

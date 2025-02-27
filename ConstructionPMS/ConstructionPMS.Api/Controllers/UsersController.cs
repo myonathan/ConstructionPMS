@@ -8,11 +8,13 @@ using ConstructionPMS.Services.Utility;
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Services.NotificationService;
 using Nest;
+using Microsoft.AspNetCore.Cors;
 
 namespace ConstructionPMS.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors("AllowAllOrigins")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;

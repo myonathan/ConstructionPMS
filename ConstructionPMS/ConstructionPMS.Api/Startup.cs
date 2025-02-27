@@ -73,6 +73,15 @@ namespace ConstructionPMS.API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ConstructionPMS API", Version = "v1" });
             });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder
+                        .AllowAnyOrigin() // Allows all origins
+                        .AllowAnyMethod() // Allows all HTTP methods
+                        .AllowAnyHeader()); // Allows all headers
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -89,6 +98,9 @@ namespace ConstructionPMS.API
 
             app.UseHttpsRedirection();
             app.UseRouting();
+
+            // Apply CORS policy
+            app.UseCors("AllowAllOrigins");
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
