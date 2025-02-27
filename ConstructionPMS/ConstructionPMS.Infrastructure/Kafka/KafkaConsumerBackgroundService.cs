@@ -1,54 +1,53 @@
 ﻿using Confluent.Kafka;
-using ConstructionPMS.Domain.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 using ConstructionPMS.Shared;
 
-public class KafkaConsumerBackgroundService : BackgroundService
+namespace ConstructionPMS.Infrastructure.Kafka
 {
-    private readonly ILogger<KafkaConsumerBackgroundService> _logger;
-    private readonly IConsumer<Ignore, string> _consumer;
-
-    public KafkaConsumerBackgroundService(ILogger<KafkaConsumerBackgroundService> logger, string bootstrapServers)
+    public class KafkaConsumerBackgroundService : BackgroundService
     {
-        _logger = logger;
-        var config = new ConsumerConfig
-        {
-            BootstrapServers = bootstrapServers,
-            GroupId = "consumer-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest
-        };
-        _consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-    }
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<KafkaConsumerBackgroundService> _logger;
+        private IConsumer<string, string> _consumer;
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _consumer.Subscribe(Constants.KafkaTopicName);
-
-        Task.Run(() =>
+        public KafkaConsumerBackgroundService(IConfiguration configuration, ILogger<KafkaConsumerBackgroundService> logger)
         {
+            _configuration = configuration;
+            _logger = logger;
+
+            var consumerConfig = new ConsumerConfig
+            {
+                BootstrapServers = _configuration["Kafka:BootstrapServers"],
+                GroupId = _configuration["Kafka:GroupId"],
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _consumer.Subscribe(Constants.KafkaTopicName);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    var cr = _consumer.Consume(stoppingToken);
-                    _logger.LogInformation($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
+                    var consumeResult = _consumer.Consume(stoppingToken);
+                    // Process the message
+                    _logger.LogInformation($"Consumed message '{consumeResult.Value}' at: '{consumeResult.TopicPartitionOffset}'.");
                 }
                 catch (ConsumeException e)
                 {
                     _logger.LogError($"Error occurred: {e.Error.Reason}");
                 }
             }
-        }, stoppingToken);
 
-        return Task.CompletedTask;
-    }
-
-    public override void Dispose()
-    {
-        _consumer.Close();
-        base.Dispose();
+            _consumer.Close();
+        }
     }
 }

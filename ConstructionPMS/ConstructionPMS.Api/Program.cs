@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Nest;
+using ConstructionPMS.Infrastructure.Kafka;
+using Microsoft.Extensions.Configuration;
 
 namespace ConstructionPMS.API
 {
@@ -22,13 +24,9 @@ namespace ConstructionPMS.API
                     // Access the configuration
                     var configuration = hostContext.Configuration;
 
-                    // Retrieve the BootstrapServers and GroupId values
-                    var bootstrapServers = configuration["Kafka:BootstrapServers"];
-
                     services.AddHostedService<KafkaConsumerBackgroundService>(provider =>
                     {
-                        var bootstrapServers = configuration["Kafka:BootstrapServers"]; // Replace with your Kafka server address
-                        return new KafkaConsumerBackgroundService(provider.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>(), bootstrapServers);
+                        return new KafkaConsumerBackgroundService(configuration, provider.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>());
                     });
                 });
     }
