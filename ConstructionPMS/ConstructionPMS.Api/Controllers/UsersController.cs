@@ -50,12 +50,24 @@ namespace ConstructionPMS.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
+            user.PasswordHash = VerifyPassword(user.PasswordHash);
             var createdUser = await _userService.CreateUserAsync(user);
 
             // Send a notification after creating a user
             await _notificationService.SendNotificationAsync($"User  '{createdUser.Username}' has been created.");
 
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+        }
+
+        private string VerifyPassword(string password)
+        {
+            // Implement password verification logic (hash the input password and compare with stored hash)
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+                var hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
         }
 
         // PUT: api/users/{id}
