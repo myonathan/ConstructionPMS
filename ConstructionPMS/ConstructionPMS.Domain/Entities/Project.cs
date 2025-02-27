@@ -5,6 +5,8 @@ namespace ConstructionPMS.Domain.Entities
 {
     public class Project
     {
+        private DateTime _constructionStartDate;
+
         [Key]
         [Required]
         [Range(100000, 999999, ErrorMessage = "Project ID must be a 6-digit unique number.")]
@@ -28,7 +30,11 @@ namespace ConstructionPMS.Domain.Entities
 
         [Required(ErrorMessage = "Construction Start Date is required.")]
         [DataType(DataType.Date)]
-        public DateTime ConstructionStartDate { get; set; }
+        public DateTime ConstructionStartDate
+        {
+            get { return _constructionStartDate.ToUniversalTime(); }
+            set { _constructionStartDate = DateTime.SpecifyKind(value, DateTimeKind.Utc); }
+        }
 
         [Required(ErrorMessage = "Project Details/Description is required.")]
         [MaxLength(2000, ErrorMessage = "Project Details/Description cannot exceed 2000 characters.")]

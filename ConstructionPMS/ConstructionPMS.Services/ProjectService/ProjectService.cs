@@ -71,7 +71,7 @@ namespace ConstructionPMS.Services
             // Check for errors
             if (!searchResponse.IsValid)
             {
-                throw new Exception($"Elasticsearch query failed: {searchResponse.OriginalException.Message}");
+                throw new Exception($"Elasticsearch query failed: {searchResponse.DebugInformation}");
             }
 
             // Return the list of projects
