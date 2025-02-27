@@ -79,7 +79,8 @@ export default defineComponent({
       projectLocation: '',
       constructionStartDate: '',
       projectDetails: '',
-      projectCreatorId: 'some-creator-id', // Replace with actual creator ID
+      projectCategory: 0,
+      OtherCategory: ''
     };
 
     const submitForm = async () => {

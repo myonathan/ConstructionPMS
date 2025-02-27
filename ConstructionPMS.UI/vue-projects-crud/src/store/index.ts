@@ -45,7 +45,7 @@ const store = createStore({
   },
   actions: {
     async fetchProjects({ commit }) {
-      const response = await axios.get('/api/projects', {
+      const response = await axios.get('https://localhost:7188/api/projects', {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -53,7 +53,7 @@ const store = createStore({
       commit('setProjects', response.data);
     },
     async createProject({ commit }, project: Project) {
-      const response = await axios.post('/api/projects', project, {
+      const response = await axios.post('https://localhost:7188/api/projects', project, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -61,7 +61,7 @@ const store = createStore({
       commit('addProject', response.data);
     },
     async updateProject({ commit }, project: Project) {
-      await axios.put(`/api/projects/${project.projectId}`, project, {
+      await axios.put(`https://localhost:7188/api/projects/${project.projectId}`, project, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -69,7 +69,7 @@ const store = createStore({
       commit('updateProject', project);
     },
     async deleteProject({ commit }, projectId: number) {
-      await axios.delete(`/api/projects/${projectId}`, {
+      await axios.delete(`https://localhost:7188/api/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
