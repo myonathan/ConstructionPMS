@@ -26,7 +26,7 @@ namespace ConstructionPMS.Services.Tests
         public async Task CreateUserAsync_ValidUser_ShouldReturnCreatedUser()
         {
             // Arrange
-            var user = new User("TestUser ", "testuser@example.com", "Admin");
+            var user = new User("TestUser ", "testuser@example.com", "Admin", "");
             _userRepositoryMock.Setup(repo => repo.AddAsync(user)).ReturnsAsync(user);
 
             // Act
@@ -50,7 +50,7 @@ namespace ConstructionPMS.Services.Tests
         public async Task GetUserByIdAsync_ExistingId_ShouldReturnUser()
         {
             // Arrange
-            var user = new User("TestUser ", "testuser@example.com", "Admin");
+            var user = new User("TestUser ", "testuser@example.com", "Admin", "");
 
             _userRepositoryMock.Setup(repo => repo.GetByIdAsync(user.Id)).ReturnsAsync(user);
 
@@ -78,8 +78,8 @@ namespace ConstructionPMS.Services.Tests
             // Arrange
             var users = new List<User>
             {
-                new User("User 1", "user1@example.com", "Admin"),
-                new User("User 2", "user2@example.com", "User ")
+                new User("User 1", "user1@example.com", "Admin", ""),
+                new User("User 2", "user2@example.com", "User", "")
             };
             _userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(users);
 

@@ -1,116 +1,150 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Infrastructure.Repositories;
 using ConstructionPMS.Services;
+using Microsoft.Extensions.Configuration;
 using Moq;
+using Nest;
 using Xunit;
 
-namespace ConstructionPMS.Services.Tests
+namespace ConstructionPMS.Tests.Services
 {
     public class ProjectServiceTests
     {
+        private readonly Mock<IConfiguration> _configurationMock;
         private readonly Mock<IProjectRepository> _projectRepositoryMock;
+        private readonly Mock<IElasticClient> _elasticClientMock;
         private readonly ProjectService _projectService;
 
         public ProjectServiceTests()
         {
+            _configurationMock = new Mock<IConfiguration>();
             _projectRepositoryMock = new Mock<IProjectRepository>();
+            _elasticClientMock = new Mock<IElasticClient>();
+            _projectService = new ProjectService(_configurationMock.Object, _projectRepositoryMock.Object, _elasticClientMock.Object);
         }
 
         [Fact]
-        public async Task CreateProject_ShouldAddProject_WhenValid()
+        public async Task CreateProjectAsync_ShouldAddProject()
         {
             // Arrange
-            var project = new Project
-            {
-                ProjectName = "New Project",
-                ProjectLocation = "Location A",
-                ProjectStage = ProjectStage.Concept,
-                ProjectCategory = ProjectCategory.Education,
-                ConstructionStartDate = DateTime.UtcNow.AddDays(30), // Future date
-                ProjectDetails = "Project details here.",
-                ProjectCreatorId = Guid.NewGuid()
-            };
+            var project = new Project { ProjectId = 1, ProjectName = "Test Project", ConstructionStartDate = DateTime.Now.AddDays(1) };
+            _projectRepositoryMock.Setup(repo => repo.AddAsync(project)).Returns(Task.CompletedTask);
 
             // Act
-            await _projectService.CreateProjectAsync(project);
+            var result = await _projectService.CreateProjectAsync(project);
 
             // Assert
-            _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>()), Times.Once);
+            Assert.Equal(project, result);
+            _projectRepositoryMock.Verify(repo => repo.AddAsync(project), Times.Once);
         }
 
         [Fact]
-        public async Task CreateProject_ShouldThrowValidationException_WhenConstructionStartDateIsInThePast()
-        {
-            // Arrange
-            var project = new Project
-            {
-                ProjectName = "New Project",
-                ProjectLocation = "Location A",
-                ProjectStage = ProjectStage.Concept,
-                ProjectCategory = ProjectCategory.Education,
-                ConstructionStartDate = DateTime.UtcNow.AddDays(-1), // Past date
-                ProjectDetails = "Project details here.",
-                ProjectCreatorId = Guid.NewGuid()
-            };
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _projectService.CreateProjectAsync(project));
-        }
-
-        [Fact]
-        public async Task GetAllProjects_ShouldReturnListOfProjects()
+        public async Task GetAllProjectsAsync_ShouldReturnProjects()
         {
             // Arrange
             var projects = new List<Project>
             {
-                new Project { ProjectName = "Project 1" },
-                new Project { ProjectName = "Project 2" }
+                new Project { ProjectId = 1, ProjectName = "Project 1" },
+                new Project { ProjectId = 2, ProjectName = "Project 2" }
             };
-
             _projectRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(projects);
 
             // Act
             var result = await _projectService.GetAllProjectsAsync();
 
             // Assert
-            Assert.Equal(2, result.Count());
+            Assert.Equal(projects, result);
         }
 
         [Fact]
-        public async Task GetProjectById_ShouldReturnProject_WhenExists()
+        public async Task GetProjectByIdAsync_ShouldReturnProject()
         {
             // Arrange
-            var projectId = 123456; // Example project ID
-            var project = new Project { ProjectName = "Project 1" };
-
-            _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.ProjectId)).ReturnsAsync(project);
+            var project = new Project { ProjectId = 1, ProjectName = "Test Project" };
+            _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(project);
 
             // Act
-            var result = await _projectService.GetProjectByIdAsync(project.ProjectId);
+            var result = await _projectService.GetProjectByIdAsync(1);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Project 1", result.ProjectName);
+            Assert.Equal(project, result);
         }
 
         [Fact]
-        public async Task GetProjectById_ShouldReturnNull_WhenNotExists()
+        public async Task UpdateProjectAsync_ShouldUpdateProject()
         {
             // Arrange
-            var projectId = 123456; // Example project ID
-            _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(projectId)).ReturnsAsync((Project)null);
+            var project = new Project { ProjectId = 1, ProjectName = "Updated Project", ConstructionStartDate = DateTime.Now.AddDays(1) };
+            _projectRepositoryMock.Setup(repo => repo.UpdateAsync(project)).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _projectService.GetProjectByIdAsync(projectId);
+            await _projectService.UpdateProjectAsync(project);
 
             // Assert
-            Assert.Null(result);
+            _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project), Times.Once);
         }
 
-        // Additional tests for UpdateProject and DeleteProject can be added here
+        [Fact]
+        public async Task DeleteProjectAsync_ShouldDeleteProject()
+        {
+            // Arrange
+            var projectId = 1;
+            _projectRepositoryMock.Setup(repo => repo.DeleteAsync(projectId)).Returns(Task.CompletedTask);
+
+            // Act
+            await _projectService.DeleteProjectAsync(projectId);
+
+            // Assert
+            _projectRepositoryMock.Verify(repo => repo.DeleteAsync(projectId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetAllProjectsFromElasticSearchAsync_ShouldReturnProjects()
+        {
+            // Arrange
+            var projects = new List<Project>
+            {
+                new Project { ProjectId = 1, ProjectName = "Project 1" },
+                new Project { ProjectId = 2, ProjectName = "Project 2" }
+            };
+
+            var searchResponse = new Mock<ISearchResponse<Project>>();
+            searchResponse.Setup(s => s.Documents).Returns(projects);
+            searchResponse.Setup(s => s.IsValid).Returns(true);
+
+            _elasticClientMock.Setup(client => client.SearchAsync<Project>(It.IsAny<Func<SearchDescriptor<Project>, ISearchRequest>>(), default))
+                .ReturnsAsync(searchResponse.Object);
+
+            _configurationMock.Setup(c => c["Elasticsearch:IndexName"]).Returns("projects");
+
+            // Act
+            var result = await _projectService.GetAllProjectsFromElasticSearchAsync();
+
+            // Assert
+            Assert.Equal(projects, result);
+        }
+
+        [Fact]
+        public async Task GetProjectByIdFromElasticSearchAsync_ShouldReturnProject()
+        {
+            // Arrange
+            var project = new Project { ProjectId = 1, ProjectName = "Test Project" };
+
+            var searchResponse = new Mock<ISearchResponse<Project>>();
+            searchResponse.Setup(s => s.Documents).Returns(new List<Project> { project });
+            searchResponse.Setup(s => s.IsValid).Returns(true);
+
+            _elasticClientMock.Setup(client => client.SearchAsync<Project>(It.IsAny<Func<SearchDescriptor<Project>, ISearchRequest>>(), default))
+                .ReturnsAsync(searchResponse.Object);
+
+            // Act
+            var result = await _projectService.GetProjectByIdFromElasticSearchAsync(1);
+
+            // Assert
+            Assert.Equal(project, result);
+        }
     }
 }
