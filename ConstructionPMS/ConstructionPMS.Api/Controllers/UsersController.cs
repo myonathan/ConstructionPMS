@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization; // Import the authorization namespace
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConstructionPMS.Services;
+using ConstructionPMS.Services.Utility;
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Services.NotificationService;
 using Nest;
@@ -16,15 +17,20 @@ namespace ConstructionPMS.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
+        private readonly IPasswordHasher _passwordHasher; // Assuming you have a password hasher service
 
-        public UsersController(IUserService userService, INotificationService notificationService)
+        public UsersController(IUserService userService, INotificationService notificationService, IPasswordHasher passwordHasher)
         {
             _userService = userService;
             _notificationService = notificationService;
+            _passwordHasher = passwordHasher;
         }
 
-        // GET: api/users
-        [Authorize] // Require authentication
+        /// <summary>
+        /// Gets all users.
+        /// </summary>
+        /// <returns>A list of users.</returns>
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
@@ -32,8 +38,12 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(users);
         }
 
-        // GET: api/users/{id}
-        [Authorize] // Require authentication
+        /// <summary>
+        /// Gets a user by ID.
+        /// </summary>
+        /// <param name="id">The ID of the user.</param>
+        /// <returns>The user with the specified ID.</returns>
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(Guid id)
         {
@@ -45,51 +55,50 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(user);
         }
 
-        // POST: api/users
-        [Authorize(Roles = "Admin")] // Require authentication and Admin role
+        /// <summary>
+        /// Creates a new user.
+        /// </summary>
+        /// <param name="user">The user to create.</param>
+        /// <returns>The created user.</returns>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
-            user.PasswordHash = VerifyPassword(user.PasswordHash);
+            user.PasswordHash = _passwordHasher.HashPassword(user.PasswordHash);
             var createdUser = await _userService.CreateUserAsync(user);
 
-            // Send a notification after creating a user
             await _notificationService.SendNotificationAsync($"User  '{createdUser.Username}' has been created.");
 
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
 
-        private string VerifyPassword(string password)
-        {
-            // Implement password verification logic (hash the input password and compare with stored hash)
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
-        }
-
-        // PUT: api/users/{id}
-        [Authorize(Roles = "Admin")] // Require authentication and Admin role
+        /// <summary>
+        /// Updates an existing user.
+        /// </summary>
+        /// <param name="id">The ID of the user to update.</param>
+        /// <param name="user">The updated user information.</param>
+        /// <returns>No content if successful.</returns>
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] User user)
         {
             if (id != user.Id)
             {
-                return BadRequest();
+                return BadRequest("User  ID mismatch.");
             }
 
             await _userService.UpdateUserAsync(user);
-
-            // Send a notification after updating a user
             await _notificationService.SendNotificationAsync($"User  '{user.Username}' has been updated.");
 
             return NoContent();
         }
 
-        // DELETE: api/users/{id}
-        [Authorize(Roles = "Admin")] // Require authentication and Admin role
+        /// <summary>
+        /// Deletes a user by ID.
+        /// </summary>
+        /// <param name="id">The ID of the user to delete.</param>
+        /// <returns>No content if successful.</returns>
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
@@ -100,8 +109,6 @@ namespace ConstructionPMS.Api.Controllers
             }
 
             await _userService.DeleteUserAsync(id);
-
-            // Send a notification after deleting a user
             await _notificationService.SendNotificationAsync($"User  '{user.Username}' has been deleted.");
 
             return NoContent();

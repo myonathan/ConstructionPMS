@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace ConstructionPMS.API
 {
@@ -19,22 +20,42 @@ namespace ConstructionPMS.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Configure JWT authentication
-            var key = Encoding.ASCII.GetBytes(Configuration["JwtSettings:SecretKey"]); // Use a secure key
-            services.AddAuthentication(x =>
+            var key = Encoding.UTF8.GetBytes(Configuration["JwtSettings:SecretKey"]); // Use a secure key
+            var issuer = Configuration["JwtSettings:Issuer"];
+            var audience = Configuration["JwtSettings:Audience"];
+
+            // Add authentication services
+            services.AddAuthentication(options =>
             {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(x =>
+            .AddJwtBearer(options =>
             {
-                x.RequireHttpsMetadata = false; // Set to true in production
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        // You can add additional checks here if needed
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        // Log the error message
+                        var errorMessage = context.Exception.Message;
+                        // Optionally, you can log this message using your logging framework
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
@@ -80,6 +101,8 @@ namespace ConstructionPMS.API
                 c.RoutePrefix = "swagger"; // Set the Swagger UI at the app's root
             });
 
+            // Enable authentication and authorization
+            app.UseAuthentication(); // Add this line to enable authentication
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

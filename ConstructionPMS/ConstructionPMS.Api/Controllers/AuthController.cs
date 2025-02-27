@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
-using ConstructionPMS.Services;
+using ConstructionPMS.Services.Utility;
 using ConstructionPMS.Infrastructure.Repositories;
 using ConstructionPMS.Api.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -18,13 +18,20 @@ namespace ConstructionPMS.Api.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public AuthController(IUserRepository userRepository, IConfiguration configuration)
+        public AuthController(IUserRepository userRepository, IConfiguration configuration, IPasswordHasher passwordHasher)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _passwordHasher = passwordHasher;
         }
 
+        /// <summary>
+        /// Authenticates a user and returns a JWT token.
+        /// </summary>
+        /// <param name="model">The login model containing username and password.</param>
+        /// <returns>A JWT token if authentication is successful.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
@@ -35,37 +42,31 @@ namespace ConstructionPMS.Api.Controllers
 
             // Validate user credentials
             var user = await _userRepository.GetByUsernameAsync(model.Username);
-            if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
+            if (user == null || !_passwordHasher.VerifyPassword(model.Password, user.PasswordHash))
             {
                 return Unauthorized("Invalid credentials.");
             }
 
-            // Generate token (you can implement token generation here)
-            var token = GenerateToken(user); // Implement this method to generate a JWT token
+            // Generate token
+            var token = GenerateToken(user);
 
             return Ok(new { AccessToken = token });
         }
 
-        private bool VerifyPassword(string password, string storedHash)
-        {
-            // Implement password verification logic (hash the input password and compare with stored hash)
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash) == storedHash;
-            }
-        }
-
+        /// <summary>
+        /// Generates a JWT token for the authenticated user.
+        /// </summary>
+        /// <param name="user">The user for whom the token is generated.</param>
+        /// <returns>A JWT token as a string.</returns>
         private string GenerateToken(User user)
         {
             // Define the claims for the token
             var claims = new[]
-                    {
-                        new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, user.Role) // Include user role if needed
-                     };
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role) // Include user role if needed
+            };
 
             // Get the secret key from configuration
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]));

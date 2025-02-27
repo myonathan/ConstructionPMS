@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using ConstructionPMS.Services;
+using ConstructionPMS.Services.Utility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +31,7 @@ namespace ConstructionPMS.Services.Extensions
 
             // Register the TokenService and its interface
             services.AddScoped<ITokenService>(provider => new TokenService(config["JwtSettings:SecretKey"])); // Pass your secret key here
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
 
             return services;
         }
