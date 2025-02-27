@@ -1,5 +1,4 @@
-﻿using ConstructionPMS.Infrastructure.Elasticsearch;
-using ConstructionPMS.Infrastructure.Kafka;
+﻿using ConstructionPMS.Infrastructure.Kafka;
 using ConstructionPMS.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,12 +17,10 @@ namespace ConstructionPMS.Infrastructure.Extensions
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             // Configure Elasticsearch
-            services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
             services.AddSingleton<IElasticClient>(provider =>
             {
-                var elasticsearchSettings = provider.GetRequiredService<IOptions<ElasticsearchSettings>>().Value;
-                return new ElasticClient(new ConnectionSettings(new Uri(elasticsearchSettings.Url))
-                    .DefaultIndex(elasticsearchSettings.IndexName));
+                return new ElasticClient(new ConnectionSettings(new Uri(configuration["Elasticsearch:Url"]))
+                    .DefaultIndex(configuration["Elasticsearch:IndexName"]));
             });
 
             // Register repositories
