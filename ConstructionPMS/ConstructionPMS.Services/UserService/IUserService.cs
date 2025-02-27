@@ -11,5 +11,6 @@ namespace ConstructionPMS.Services
         Task<User> CreateUserAsync(User user);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(Guid userId);
+        Task<User> GetUserByEmailAsync(string email);
     }
 }

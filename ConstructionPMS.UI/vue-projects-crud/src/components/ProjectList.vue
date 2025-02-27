@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="margin:25px">
     <h1 class="text-2xl font-bold">Projects</h1>
     <br/>
     <router-link to="/projects/new" class="btn btn-primary">Create New Project</router-link>
@@ -16,7 +16,7 @@
           <div class="text-sm text-gray-600">
             Location: {{ project.projectLocation }} | 
             Start Date: {{ new Date(project.constructionStartDate).toLocaleDateString() }} | 
-            Stage: {{ project.projectStage }}
+            Details: {{ project.projectDetails }}
           </div>
         </div>
         <button @click="deleteProject(project.projectId)" class="text-red-600 hover:underline">

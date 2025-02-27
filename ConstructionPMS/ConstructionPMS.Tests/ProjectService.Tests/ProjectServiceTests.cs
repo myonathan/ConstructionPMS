@@ -30,7 +30,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task CreateProjectAsync_ShouldAddProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Test Project", ConstructionStartDate = DateTime.Now.AddDays(1) };
+            var project = new Project { ProjectId = 1, ProjectName = "Test Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
             _projectRepositoryMock.Setup(repo => repo.AddAsync(project)).Returns(Task.CompletedTask);
 
             // Act
@@ -77,7 +77,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task UpdateProjectAsync_ShouldUpdateProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Updated Project", ConstructionStartDate = DateTime.Now.AddDays(1) };
+            var project = new Project { ProjectId = 1, ProjectName = "Updated Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
             _projectRepositoryMock.Setup(repo => repo.UpdateAsync(project)).Returns(Task.CompletedTask);
 
             // Act

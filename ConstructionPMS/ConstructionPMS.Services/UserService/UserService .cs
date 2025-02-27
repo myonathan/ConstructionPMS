@@ -32,6 +32,16 @@ namespace ConstructionPMS.Services
             return user;
         }
 
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                throw new CustomException($"User  with email {email} not found.");
+            }
+            return user;
+        }
+
         public async Task<User> CreateUserAsync(User user)
         {
             if (user == null)

@@ -27,7 +27,7 @@
           <label for="constructionStartDate" class="block text-sm font-medium text-gray-700">Construction Start Date</label>
           <input
             id="constructionStartDate"
-            v-model="project.constructionStartDate"
+            v-model="formattedConstructionStartDate"
             type="date"
             required
             class="mt-1 border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -73,21 +73,42 @@ export default defineComponent({
     const router = useRouter();
     const isEdit = !!route.params.id;
 
-    const project = {
+    // Initialize project object
+    const project = ref({
       projectId: isEdit ? Number(route.params.id) : 0,
       projectName: '',
       projectLocation: '',
       constructionStartDate: '',
       projectDetails: '',
       projectCategory: 0,
-      OtherCategory: ''
-    };
+      otherCategory: ''
+    });
+
+    // If in edit mode, populate the project with the data from the store
+    if (isEdit) {
+      const existingProject = store.state.projects.find(p => p.projectId === project.value.projectId);
+      if (existingProject) {
+        project.value = { ...existingProject }; // Populate the project with existing data
+      }
+    }
+
+    // Computed property to format the construction start date for the date input
+    const formattedConstructionStartDate = computed({
+      get: () => {
+        // Convert ISO date to YYYY-MM-DD format
+        return project.value.constructionStartDate ? project.value.constructionStartDate.split('T')[0] : '';
+      },
+      set: (value) => {
+        // Update the project construction start date when the input changes
+        project.value.constructionStartDate = value;
+      }
+    });
 
     const submitForm = async () => {
       if (isEdit) {
-        await store.dispatch('updateProject', project);
+        await store.dispatch('updateProject', project.value);
       } else {
-        await store.dispatch('createProject', project);
+        await store.dispatch('createProject', project.value);
       }
       router.push('/');
     };
@@ -96,7 +117,7 @@ export default defineComponent({
       router.push('/'); // Navigate back to the Project List
     };
 
-    return { project, submitForm, isEdit, goBack };
+    return { project, submitForm, isEdit, goBack, formattedConstructionStartDate };
   },
 });
 </script>

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Cors;
+using ConstructionPMS.Services;
 
 namespace ConstructionPMS.Api.Controllers
 {
@@ -18,13 +19,13 @@ namespace ConstructionPMS.Api.Controllers
     [EnableCors("AllowAllOrigins")]
     public class AuthController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IConfiguration _configuration;
         private readonly IPasswordHasher _passwordHasher;
 
-        public AuthController(IUserRepository userRepository, IConfiguration configuration, IPasswordHasher passwordHasher)
+        public AuthController(IUserService userService, IConfiguration configuration, IPasswordHasher passwordHasher)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _configuration = configuration;
             _passwordHasher = passwordHasher;
         }
@@ -43,7 +44,7 @@ namespace ConstructionPMS.Api.Controllers
             }
 
             // Validate user credentials
-            var user = await _userRepository.GetByEmailAsync(model.Email);
+            var user = await _userService.GetUserByEmailAsync(model.Email);
             if (user == null || !_passwordHasher.VerifyPassword(model.Password, user.PasswordHash))
             {
                 return Unauthorized("Invalid credentials.");

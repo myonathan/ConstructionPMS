@@ -18,6 +18,9 @@ interface User {
   // You can add other properties if you fetch user details later
 }
 
+// Define the base URL for the API
+const BASE_URL = 'https://localhost:7188/api';
+
 const store = createStore({
   state: {
     projects: [] as Project[],
@@ -30,10 +33,14 @@ const store = createStore({
     addProject(state, project: Project) {
       state.projects.push(project);
     },
-    updateProject(state, updatedProject: Project) {
+    updateProject(state, updatedProject) {
       const index = state.projects.findIndex(p => p.projectId === updatedProject.projectId);
       if (index !== -1) {
-        state.projects[index] = updatedProject;
+        // Update the existing project
+        state.projects.splice(index, 1, updatedProject);
+      } else {
+        // Optionally handle case where project is not found
+        console.error('Project not found for update:', updatedProject.projectId);
       }
     },
     deleteProject(state, projectId: number) {
@@ -45,7 +52,7 @@ const store = createStore({
   },
   actions: {
     async fetchProjects({ commit }) {
-      const response = await axios.get('https://localhost:7188/api/projects', {
+      const response = await axios.get(`${BASE_URL}/projects`, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -53,7 +60,7 @@ const store = createStore({
       commit('setProjects', response.data);
     },
     async createProject({ commit }, project: Project) {
-      const response = await axios.post('https://localhost:7188/api/projects', project, {
+      const response = await axios.post(`${BASE_URL}/projects`, project, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -61,15 +68,18 @@ const store = createStore({
       commit('addProject', response.data);
     },
     async updateProject({ commit }, project: Project) {
-      await axios.put(`https://localhost:7188/api/projects/${project.projectId}`, project, {
+      console.log('Updating project:', project);
+      // Ensure projectId is not modified
+      const updatedProject = { ...project, projectId: project.projectId }; 
+      await axios.put(`${BASE_URL}/projects`, updatedProject, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
       });
-      commit('updateProject', project);
+      commit('updateProject', updatedProject);
     },
     async deleteProject({ commit }, projectId: number) {
-      await axios.delete(`https://localhost:7188/api/projects/${projectId}`, {
+      await axios.delete(`${BASE_URL}/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -78,7 +88,7 @@ const store = createStore({
     },
     async login({ commit }, { email, password, router }) {
       try {
-        const response = await axios.post('https://localhost:7188/api/Auth/login', { email, password });
+        const response = await axios.post(`${BASE_URL}/Auth/login`, { email, password });
         
         // Extract the access token from the response
         const accessToken = response.data.accessToken;

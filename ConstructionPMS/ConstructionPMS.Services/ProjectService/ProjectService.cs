@@ -24,6 +24,8 @@ namespace ConstructionPMS.Services
 
         public async Task<Project> CreateProjectAsync(Project project)
         {
+            project.GenerateUniqueProjectId();
+
             // Validate the project
             project.Validate();
 

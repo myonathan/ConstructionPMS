@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace ConstructionPMS.Domain.Entities
 {
@@ -9,7 +10,6 @@ namespace ConstructionPMS.Domain.Entities
 
         [Key]
         [Required]
-        [Range(100000, 999999, ErrorMessage = "Project ID must be a 6-digit unique number.")]
         public int ProjectId { get; set; } // 6-digit unique number
 
         [Required(ErrorMessage = "Project Name is required.")]
@@ -26,14 +26,14 @@ namespace ConstructionPMS.Domain.Entities
         [Required(ErrorMessage = "Project Category is required.")]
         public ProjectCategory ProjectCategory { get; set; } // Enum for Project Category
 
-        public string OtherCategory { get; set; } // For user-defined categories
+        public string OtherCategory { get; set; } // For user-defined categories (optional)
 
         [Required(ErrorMessage = "Construction Start Date is required.")]
         [DataType(DataType.Date)]
         public DateTime ConstructionStartDate
         {
-            get { return _constructionStartDate.ToUniversalTime(); }
-            set { _constructionStartDate = DateTime.SpecifyKind(value, DateTimeKind.Utc); }
+            get => _constructionStartDate.ToUniversalTime();
+            set => _constructionStartDate = DateTime.SpecifyKind(value, DateTimeKind.Utc);
         }
 
         [Required(ErrorMessage = "Project Details/Description is required.")]
@@ -43,33 +43,74 @@ namespace ConstructionPMS.Domain.Entities
         [Required(ErrorMessage = "Project Creator ID is required.")]
         public Guid ProjectCreatorId { get; set; } // UserID
 
-        // Constructor to generate a unique Project ID
+        // Constructor for creating a new project
         public Project()
         {
-            ProjectId = GenerateUniqueProjectId();
+        }
+
+        // Constructor for editing an existing project
+        public Project(int projectId, string projectName, string projectLocation, ProjectStage projectStage,
+                       ProjectCategory projectCategory, string otherCategory, DateTime constructionStartDate,
+                       string projectDetails, Guid projectCreatorId)
+        {
+            ProjectId = projectId; // This will invoke the validation logic
+            ProjectName = projectName;
+            ProjectLocation = projectLocation;
+            ProjectStage = projectStage;
+            ProjectCategory = projectCategory;
+            OtherCategory = otherCategory; // This can be null or empty
+            ConstructionStartDate = constructionStartDate;
+            ProjectDetails = projectDetails;
+            ProjectCreatorId = projectCreatorId;
         }
 
         // Method to validate the project based on the specified rules
         public void Validate()
         {
-            if (ProjectStage == ProjectStage.Concept ||
-                ProjectStage == ProjectStage.DesignAndDocumentation ||
-                ProjectStage == ProjectStage.PreConstruction)
+            // Validate ProjectId
+            if (!IsValidProjectId(ProjectId.ToString()))
+            {
+                throw new ValidationException("Project ID must be a 6-digit unique number.");
+            }
+
+            // Validate Construction Start Date
+            if (IsFutureConstructionDateRequired())
             {
                 if (ConstructionStartDate <= DateTime.UtcNow)
                 {
                     throw new ValidationException("Construction Start Date must be in the future for the selected project stage.");
                 }
             }
+
+            // Validate Project Creator ID
+            if (ProjectCreatorId == Guid.Empty)
+            {
+                throw new ValidationException("Project Creator ID is required.");
+            }
+        }
+
+        // Method to check if the ProjectId is a valid 6-digit number using regex
+        private bool IsValidProjectId(string projectId)
+        {
+            // Regex to check if the projectId is exactly 6 digits
+            return Regex.IsMatch(projectId, @"^\d{6}$");
+        }
+
+        // Method to check if the construction date must be in the future based on the project stage
+        private bool IsFutureConstructionDateRequired()
+        {
+            return ProjectStage == ProjectStage.Concept ||
+                   ProjectStage == ProjectStage.DesignAndDocumentation ||
+                   ProjectStage == ProjectStage.PreConstruction;
         }
 
         // Method to generate a unique 6-digit Project ID
-        private int GenerateUniqueProjectId()
+        public void GenerateUniqueProjectId()
         {
             // Logic to generate a unique 6-digit number
             // This is a placeholder; implement your own logic to ensure uniqueness
             Random random = new Random();
-            return random.Next(100000, 999999);
+            ProjectId = random.Next(100000, 999999);
         }
     }
 
