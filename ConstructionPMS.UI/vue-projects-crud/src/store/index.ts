@@ -13,9 +13,15 @@ export interface Project {
   projectCreatorId: string;
 }
 
+interface User {
+  id: string;
+  email: string;
+}
+
 const store = createStore({
   state: {
     projects: [] as Project[],
+    user: null as User | null, // Add user state
   },
   mutations: {
     setProjects(state, projects: Project[]) {
@@ -32,6 +38,9 @@ const store = createStore({
     },
     deleteProject(state, projectId: number) {
       state.projects = state.projects.filter(p => p.projectId !== projectId);
+    },
+    setUser (state, user: User | null) { // Mutation to set user
+      state.user = user;
     },
   },
   actions: {
@@ -50,6 +59,20 @@ const store = createStore({
     async deleteProject({ commit }, projectId: number) {
       await axios.delete(`/api/projects/${projectId}`);
       commit('deleteProject', projectId);
+    },
+    async login({ commit }, { email, password }) {
+      try {
+        const response = await axios.post('/api/login', { email, password });
+        const user = response.data; // Assuming the response contains user data
+        commit('setUser ', user);
+      } catch (error) {
+        console.error('Login failed:', error);
+        throw error; // Rethrow the error to handle it in the component
+      }
+    },
+    async logout({ commit }) {
+      await axios.post('/api/logout'); // Call your logout API
+      commit('setUser ', null); // Clear user state
     },
   },
 });
