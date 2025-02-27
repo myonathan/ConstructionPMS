@@ -2,9 +2,12 @@
 using ConstructionPMS.Domain.Entities;
 using ConstructionPMS.Services;
 using ConstructionPMS.Services.NotificationService;
+using Microsoft.AspNetCore.Authorization; // Import the authorization namespace
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using ConstructionPMS.Exceptions;
-using ConstructionPMS.Shared;
 
 namespace ConstructionPMS.Api.Controllers
 {
@@ -25,6 +28,8 @@ namespace ConstructionPMS.Api.Controllers
             _kafkaProducer = kafkaProducer;
         }
 
+        // GET: api/projects
+        [Authorize] // Require authentication
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Project>>> GetAllProjects()
         {
@@ -33,6 +38,8 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(projects);
         }
 
+        // GET: api/projects/{id}
+        [Authorize] // Require authentication
         [HttpGet("{id}")]
         public async Task<ActionResult<Project>> GetProjectById(int id)
         {
@@ -45,6 +52,8 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(project);
         }
 
+        // POST: api/projects
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpPost]
         public async Task<ActionResult<Project>> CreateProject([FromBody] Project project)
         {
@@ -72,6 +81,8 @@ namespace ConstructionPMS.Api.Controllers
             }
         }
 
+        // PUT: api/projects/{id}
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProject(int id, [FromBody] Project project)
         {
@@ -99,6 +110,8 @@ namespace ConstructionPMS.Api.Controllers
             }
         }
 
+        // DELETE: api/projects/{id}
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(int id)
         {

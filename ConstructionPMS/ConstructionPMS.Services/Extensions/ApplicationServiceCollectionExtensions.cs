@@ -9,6 +9,9 @@ namespace ConstructionPMS.Services.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            // Access the configuration
+            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+
             // Register application services
             services.AddScoped<NotificationService.INotificationService, NotificationService.NotificationService>();
             services.AddScoped<IProjectService, ProjectService>();
@@ -24,6 +27,9 @@ namespace ConstructionPMS.Services.Extensions
                 };
                 return new ProducerBuilder<Null, string>(producerConfig).Build();
             });
+
+            // Register the TokenService and its interface
+            services.AddScoped<ITokenService>(provider => new TokenService(config["JwtSettings:SecretKey"])); // Pass your secret key here
 
             return services;
         }

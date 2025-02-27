@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ConstructionPMS.Domain\ConstructionPMS.Domain.csproj" />
     <ProjectReference Include="..\ConstructionPMS.Infrastructure\ConstructionPMS.Infrastructure.csproj" />
     <ProjectReference Include="..\ConstructionPMS.Shared\ConstructionPMS.Shared.csproj" />

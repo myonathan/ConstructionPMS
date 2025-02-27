@@ -1,11 +1,9 @@
 ﻿using ConstructionPMS.Infrastructure.Extensions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ConstructionPMS.Services.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace ConstructionPMS.API
 {
@@ -20,6 +18,29 @@ namespace ConstructionPMS.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Access the configuration
+            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+
+            // Configure JWT authentication
+            var key = Encoding.ASCII.GetBytes(config["JwtSettings:SecretKey"]); // Use a secure key
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false; // Set to true in production
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+
             // Register infrastructure services
             services.AddInfrastructureServices(Configuration);
 

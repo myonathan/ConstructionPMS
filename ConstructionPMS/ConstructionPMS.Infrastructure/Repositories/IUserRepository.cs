@@ -12,5 +12,6 @@ namespace ConstructionPMS.Infrastructure.Repositories
         Task<User> AddAsync(User user); // Ensure this returns User
         Task UpdateAsync(User user);
         Task DeleteAsync(Guid userId);
+        Task<User> GetByUsernameAsync(string username);
     }
 }

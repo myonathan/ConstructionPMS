@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConstructionPMS.Infrastructure.Migrations
 {
     [DbContext(typeof(ConstructionDbContext))]
-    [Migration("20250227011801_InitialCreate")]
+    [Migration("20250227135820_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -76,6 +76,10 @@ namespace ConstructionPMS.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 

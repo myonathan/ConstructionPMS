@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization; // Import the authorization namespace
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace ConstructionPMS.Api.Controllers
             _notificationService = notificationService;
         }
 
+        // GET: api/users
+        [Authorize] // Require authentication
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
@@ -29,6 +32,8 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(users);
         }
 
+        // GET: api/users/{id}
+        [Authorize] // Require authentication
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(Guid id)
         {
@@ -40,6 +45,8 @@ namespace ConstructionPMS.Api.Controllers
             return Ok(user);
         }
 
+        // POST: api/users
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
@@ -51,6 +58,8 @@ namespace ConstructionPMS.Api.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
 
+        // PUT: api/users/{id}
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] User user)
         {
@@ -67,6 +76,8 @@ namespace ConstructionPMS.Api.Controllers
             return NoContent();
         }
 
+        // DELETE: api/users/{id}
+        [Authorize(Roles = "Admin")] // Require authentication and Admin role
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
