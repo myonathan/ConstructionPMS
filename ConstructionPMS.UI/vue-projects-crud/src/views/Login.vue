@@ -51,8 +51,10 @@ export default defineComponent({
 
     const login = async () => {
       try {
-        await store.dispatch('login', { email: email.value, password: password.value });
-        router.push('/'); // Redirect to the project list on success
+        // Pass the router instance to the login action
+        await store.dispatch('login', { email: email.value, password: password.value, router });
+        // Redirect to the project list on success
+        router.push('/'); // Redirect to the root path (ProjectList)
       } catch (error) {
         console.error('Login failed:', error);
         alert('Login failed. Please check your credentials and try again.');

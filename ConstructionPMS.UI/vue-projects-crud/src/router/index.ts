@@ -38,8 +38,14 @@ const router = createRouter({
 
 // Navigation guard to protect routes
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = store.state.user !== null; // Check if user is authenticated
+  const isAuthenticated = !!store.state.user; // Check if user is authenticated
+  console.log('Navigating to:', to.path);
+  console.log('User  state:', store.state.user);
+  console.log('Is authenticated:', isAuthenticated);
+
+  // Check if the route requires authentication
   if (to.meta.requiresAuth && !isAuthenticated) {
+    console.log("User  is not authenticated, redirecting to login.");
     next('/login'); // Redirect to login if not authenticated
   } else {
     next(); // Proceed to the route
