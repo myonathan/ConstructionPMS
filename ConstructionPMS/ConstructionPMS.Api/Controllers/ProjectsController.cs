@@ -12,12 +12,14 @@ namespace ConstructionPMS.Api.Controllers
     [Route("api/[controller]")]
     public class ProjectsController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
         private readonly IProjectService _projectService;
         private readonly INotificationService _notificationService;
         private readonly IProducer<Null, string> _kafkaProducer; // Kafka producer for sending messages
 
-        public ProjectsController(IProjectService projectService, INotificationService notificationService, IProducer<Null, string> kafkaProducer)
+        public ProjectsController(IConfiguration configuration, IProjectService projectService, INotificationService notificationService, IProducer<Null, string> kafkaProducer)
         {
+            _configuration = configuration;
             _projectService = projectService;
             _notificationService = notificationService;
             _kafkaProducer = kafkaProducer;
@@ -60,7 +62,7 @@ namespace ConstructionPMS.Api.Controllers
 
                 // Publish to Kafka topic for storing in Elasticsearch
                 var message = $"Created project: {createdProject.ProjectId}";
-                await _kafkaProducer.ProduceAsync(Constants.KafkaTopicName, new Message<Null, string> { Value = message });
+                await _kafkaProducer.ProduceAsync(_configuration["Kafka:Topic"], new Message<Null, string> { Value = message });
 
                 return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.ProjectId }, createdProject);
             }
@@ -87,7 +89,7 @@ namespace ConstructionPMS.Api.Controllers
 
                 // Publish to Kafka topic for updating in Elasticsearch
                 var message = $"Updated project: {project.ProjectId}";
-                await _kafkaProducer.ProduceAsync(Constants.KafkaTopicName, new Message<Null, string> { Value = message });
+                await _kafkaProducer.ProduceAsync(_configuration["Kafka:Topic"], new Message<Null, string> { Value = message });
 
                 return NoContent();
             }
@@ -113,7 +115,7 @@ namespace ConstructionPMS.Api.Controllers
 
             // Publish to Kafka topic for deletion in Elasticsearch
             var message = $"Deleted project: {project.ProjectId}";
-            await _kafkaProducer.ProduceAsync(Constants.KafkaTopicName, new Message<Null, string> { Value = message });
+            await _kafkaProducer.ProduceAsync(_configuration["Kafka:Topic"], new Message<Null, string> { Value = message });
 
             return NoContent();
         }

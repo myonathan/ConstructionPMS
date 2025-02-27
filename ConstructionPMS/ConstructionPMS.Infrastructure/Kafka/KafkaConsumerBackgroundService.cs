@@ -31,7 +31,7 @@ namespace ConstructionPMS.Infrastructure.Kafka
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.Subscribe(Constants.KafkaTopicName);
+            _consumer.Subscribe(_configuration["Kafka:Topic"]);
 
             while (!stoppingToken.IsCancellationRequested)
             {
