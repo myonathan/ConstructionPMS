@@ -49,6 +49,13 @@
         >
           {{ isEdit ? 'Update' : 'Create' }} Project
         </button>
+        <button
+          type="button"
+          @click="goBack"
+          class="w-full bg-gray-300 text-gray-700 font-semibold py-2 rounded-md hover:bg-gray-400 transition duration-200 mt-4"
+        >
+          Back to Project List
+        </button>
       </form>
     </div>
   </div>
@@ -84,7 +91,11 @@ export default defineComponent({
       router.push('/');
     };
 
-    return { project, submitForm, isEdit };
+    const goBack = () => {
+      router.push('/'); // Navigate back to the Project List
+    };
+
+    return { project, submitForm, isEdit, goBack };
   },
 });
 </script>
