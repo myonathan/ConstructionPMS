@@ -18,7 +18,6 @@ namespace ConstructionPMS.Services.Tests
         public ProjectServiceTests()
         {
             _projectRepositoryMock = new Mock<IProjectRepository>();
-            _projectService = new ProjectService(_projectRepositoryMock.Object);
         }
 
         [Fact]

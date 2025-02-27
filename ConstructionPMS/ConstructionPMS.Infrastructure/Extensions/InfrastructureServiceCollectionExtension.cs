@@ -1,10 +1,10 @@
-﻿using ConstructionPMS.Domain.Interfaces;
-using ConstructionPMS.Infrastructure.Elasticsearch;
+﻿using ConstructionPMS.Infrastructure.Elasticsearch;
 using ConstructionPMS.Infrastructure.Kafka;
 using ConstructionPMS.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Nest;
 
 namespace ConstructionPMS.Infrastructure.Extensions
@@ -18,22 +18,36 @@ namespace ConstructionPMS.Infrastructure.Extensions
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             // Configure Elasticsearch
-            var elasticsearchSettings = new ElasticsearchSettings();
-            configuration.GetSection("Elasticsearch").Bind(elasticsearchSettings);
-            services.AddSingleton(elasticsearchSettings);
-            services.AddSingleton<IElasticClient>(new ElasticClient(new ConnectionSettings(new Uri(elasticsearchSettings.Url))
-                .DefaultIndex(elasticsearchSettings.IndexName)));
+            services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
+            services.AddSingleton<IElasticClient>(provider =>
+            {
+                var elasticsearchSettings = provider.GetRequiredService<IOptions<ElasticsearchSettings>>().Value;
+                return new ElasticClient(new ConnectionSettings(new Uri(elasticsearchSettings.Url))
+                    .DefaultIndex(elasticsearchSettings.IndexName));
+            });
 
             // Register repositories
             services.AddScoped<IProjectRepository, ProjectRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped < IUserRepository, UserRepository > ();
 
-            // Register Kafka producer and consumer
-            services.AddSingleton<IKafkaProducerService>(provider => new KafkaProducer(configuration["Kafka:BootstrapServers"]));
+            // Retrieve Kafka configuration values
+            var kafkaSettings = new
+            {
+                BootstrapServers = configuration["Kafka:BootstrapServers"],
+                GroupId = configuration["Kafka:GroupId"]
+            };
 
-            services.AddSingleton<KafkaProducer>(provider => new KafkaProducer(configuration["Kafka:BootstrapServers"]));
-            services.AddSingleton<KafkaConsumer>(provider => new KafkaConsumer(configuration["Kafka:BootstrapServers"], configuration["Kafka:GroupId"]));
+            // Register Kafka producer
+            services.AddSingleton<IKafkaProducerService>(provider =>
+                new KafkaProducer(kafkaSettings.BootstrapServers));
+
+            // Register Kafka consumer
+            services.AddSingleton<IKafkaConsumerService>(provider =>
+            {
+                var projectRepository = provider.GetRequiredService<IProjectRepository>();
+                var elasticClient = provider.GetRequiredService<IElasticClient>();
+                return new KafkaConsumer(kafkaSettings.BootstrapServers, kafkaSettings.GroupId, projectRepository, elasticClient);
+            });
 
             return services;
         }

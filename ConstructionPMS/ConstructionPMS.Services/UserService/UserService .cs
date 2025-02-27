@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConstructionPMS.Domain.Entities;
-using ConstructionPMS.Domain.Interfaces;
 using ConstructionPMS.Infrastructure.Repositories;
 using ConstructionPMS.Shared.Exceptions;
 using Nest;

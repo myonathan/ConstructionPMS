@@ -9,13 +9,11 @@ namespace ConstructionPMS.Infrastructure
 
         public DbSet<Project> Projects { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Project>().ToTable(nameof(Project));
             modelBuilder.Entity<User>().ToTable(nameof(User));
-            modelBuilder.Entity<Notification>().ToTable(nameof(Notification));
         }
     }
 }

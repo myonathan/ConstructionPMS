@@ -12,5 +12,7 @@ namespace ConstructionPMS.Services
         Task<Project> GetProjectByIdAsync(int projectId);
         Task UpdateProjectAsync(Project project);
         Task DeleteProjectAsync(int projectId);
+        Task<IEnumerable<Project>> GetAllProjectsFromElasticSearchAsync();
+        Task<Project> GetProjectByIdFromElasticSearchAsync(int id);
     }
 }

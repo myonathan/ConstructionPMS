@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ConstructionPMS.Infrastructure\ConstructionPMS.Infrastructure.csproj" />
     <ProjectReference Include="..\ConstructionPMS.Services\ConstructionPMS.Services.csproj" />
+    <ProjectReference Include="..\ConstructionPMS.Shared\ConstructionPMS.Shared.csproj" />
   </ItemGroup>
 
 </Project>

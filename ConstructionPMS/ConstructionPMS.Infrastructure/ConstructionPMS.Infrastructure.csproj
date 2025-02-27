@@ -18,12 +18,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageReference Include="NEST" Version="7.17.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ConstructionPMS.Domain\ConstructionPMS.Domain.csproj" />
+    <ProjectReference Include="..\ConstructionPMS.Shared\ConstructionPMS.Shared.csproj" />
   </ItemGroup>
 
 </Project>
