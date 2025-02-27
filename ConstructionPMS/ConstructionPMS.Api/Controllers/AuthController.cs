@@ -35,13 +35,13 @@ namespace ConstructionPMS.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            if (model == null || string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
+            if (model == null || string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Password))
             {
                 return BadRequest("Invalid login data.");
             }
 
             // Validate user credentials
-            var user = await _userRepository.GetByUsernameAsync(model.Username);
+            var user = await _userRepository.GetByEmailAsync(model.Email);
             if (user == null || !_passwordHasher.VerifyPassword(model.Password, user.PasswordHash))
             {
                 return Unauthorized("Invalid credentials.");

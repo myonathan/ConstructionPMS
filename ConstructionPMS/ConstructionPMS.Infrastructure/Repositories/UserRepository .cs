@@ -52,5 +52,10 @@ namespace ConstructionPMS.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
+
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
     }
 }

@@ -13,5 +13,6 @@ namespace ConstructionPMS.Infrastructure.Repositories
         Task UpdateAsync(User user);
         Task DeleteAsync(Guid userId);
         Task<User> GetByUsernameAsync(string username);
+        Task<User> GetByEmailAsync(string email);
     }
 }
