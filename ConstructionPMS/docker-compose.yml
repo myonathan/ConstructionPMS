@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  constructionpms.api:
+    image: constructionpms.api:latest
+    build:
+      context: .
+      dockerfile: ConstructionPMS.Api/Dockerfile
+    ports:
+      - "5000:80"  # Map port 80 in the container to port 5000 on the host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development  # Set the environment (Development/Production)
+      - ConnectionStrings__DefaultConnection=Host=db;Database=ConstructionPMS;Username=postgres;Password=YourStrong@Passw0rd;  # Connection string for PostgreSQL
+    depends_on:
+      - db  # Ensure the database service starts before the API
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"  # Map PostgreSQL port
+    environment:
+      - POSTGRES_DB=ConstructionPMS  # Name of the database to create
+      - POSTGRES_USER=postgres  # Default PostgreSQL user
+      - POSTGRES_PASSWORD=YourStrong@Passw0rd  # Set the PostgreSQL user password
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Persist database data
+
+volumes:
+  db_data:  # Define a volume for the database
