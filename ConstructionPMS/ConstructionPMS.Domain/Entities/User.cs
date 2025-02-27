@@ -4,11 +4,11 @@ namespace ConstructionPMS.Domain.Entities
 {
     public class User
     {
-        public Guid Id { get; private set; }
-        public string Username { get; private set; }
-        public string Email { get; private set; }
-        public string Role { get; private set; }
-        public string PasswordHash { get; private set; } // Store the hashed password
+        public Guid Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public string PasswordHash { get; set; } // Store the hashed password
 
         public User() { }
 

@@ -10,7 +10,7 @@ namespace ConstructionPMS.Domain.Entities
         [Key]
         [Required]
         [Range(100000, 999999, ErrorMessage = "Project ID must be a 6-digit unique number.")]
-        public int ProjectId { get; private set; } // 6-digit unique number
+        public int ProjectId { get; set; } // 6-digit unique number
 
         [Required(ErrorMessage = "Project Name is required.")]
         [MaxLength(200, ErrorMessage = "Project Name cannot exceed 200 characters.")]

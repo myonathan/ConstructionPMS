@@ -4,10 +4,10 @@ namespace ConstructionPMS.Domain.Entities
 {
     public class Notification
     {
-        public Guid Id { get; private set; }
-        public string Message { get; private set; }
-        public DateTime CreatedAt { get; private set; }
-        public Guid UserId { get; private set; }
+        public Guid Id { get; set; }
+        public string Message { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public Guid UserId { get; set; }
 
         public Notification(string message, Guid userId)
         {

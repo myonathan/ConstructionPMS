@@ -18,11 +18,8 @@ namespace ConstructionPMS.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Access the configuration
-            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-
             // Configure JWT authentication
-            var key = Encoding.ASCII.GetBytes(config["JwtSettings:SecretKey"]); // Use a secure key
+            var key = Encoding.ASCII.GetBytes(Configuration["JwtSettings:SecretKey"]); // Use a secure key
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
