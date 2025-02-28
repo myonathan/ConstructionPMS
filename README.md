@@ -1,7 +1,7 @@
 # ConstructionPMS
 BCI Central
 
-![Alt text](loginimage_sampleimage.png)
+![Alt text](login_sampleimage.png)
 
 ![Alt text](projectList_sampleImage.png)
 
