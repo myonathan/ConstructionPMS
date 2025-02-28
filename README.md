@@ -12,6 +12,7 @@ Ensure you have the following installed on your Windows system:
 - [Git](https://git-scm.com/)
 - [Docker](https://www.docker.com/) (Optional, for Kafka and Zookeeper)
 
+## Sample Running Application Screenshots
 ![Alt text](login_sampleimage.png)
 
 ![Alt text](projectList_sampleImage.png)
