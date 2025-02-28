@@ -52,7 +52,7 @@ const store = createStore({
   },
   actions: {
     async fetchProjects({ commit }) {
-      const response = await axios.get(`${BASE_URL}/projects`, {
+      const response = await axios.get(`${BASE_URL}/projects/GetAllKafkaProjects`, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -60,7 +60,7 @@ const store = createStore({
       commit('setProjects', response.data);
     },
     async createProject({ commit }, project: Project) {
-      const response = await axios.post(`${BASE_URL}/projects`, project, {
+      const response = await axios.post(`${BASE_URL}/projects/CreateKafkaProject`, project, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -71,7 +71,7 @@ const store = createStore({
       console.log('Updating project:', project);
       // Ensure projectId is not modified
       const updatedProject = { ...project, projectId: project.projectId }; 
-      await axios.put(`${BASE_URL}/projects`, updatedProject, {
+      await axios.put(`${BASE_URL}/projects/UpdateKafkaProject`, updatedProject, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
@@ -79,7 +79,7 @@ const store = createStore({
       commit('updateProject', updatedProject);
     },
     async deleteProject({ commit }, projectId: number) {
-      await axios.delete(`${BASE_URL}/projects/${projectId}`, {
+      await axios.delete(`${BASE_URL}/projects/DeleteKafkaProject/${projectId}`, {
         headers: {
           Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
         }
