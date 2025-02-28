@@ -12,42 +12,26 @@ namespace ConstructionPMS.Infrastructure.Kafka
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<KafkaConsumerBackgroundService> _logger;
-        private IConsumer<string, string> _consumer;
+        private IKafkaConsumerService _consumer;
 
-        public KafkaConsumerBackgroundService(IConfiguration configuration, ILogger<KafkaConsumerBackgroundService> logger)
+        public KafkaConsumerBackgroundService(IConfiguration configuration, IKafkaConsumerService consumer, ILogger<KafkaConsumerBackgroundService> logger)
         {
             _configuration = configuration;
             _logger = logger;
 
-            var consumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = _configuration["Kafka:BootstrapServers"],
-                GroupId = _configuration["Kafka:GroupId"],
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            };
-
-            _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+            _consumer = consumer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.Subscribe(_configuration["Kafka:Topic"]);
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    var consumeResult = _consumer.Consume(stoppingToken);
-                    // Process the message
-                    _logger.LogInformation($"Consumed message '{consumeResult.Value}' at: '{consumeResult.TopicPartitionOffset}'.");
-                }
-                catch (ConsumeException e)
-                {
-                    _logger.LogError($"Error occurred: {e.Error.Reason}");
-                }
+                 await _consumer.ConsumeAsync(_configuration["Kafka:Topic"], stoppingToken);
             }
-
-            _consumer.Close();
+            catch (ConsumeException e)
+            {
+                _logger.LogError($"Error occurred: {e.Error.Reason}");
+            }
         }
     }
 }

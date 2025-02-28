@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Nest;
 using ConstructionPMS.Infrastructure.Kafka;
 using Microsoft.Extensions.Configuration;
+using ConstructionPMS.Infrastructure.Repositories;
 
 namespace ConstructionPMS.API
 {
@@ -24,9 +25,19 @@ namespace ConstructionPMS.API
                     // Access the configuration
                     var configuration = hostContext.Configuration;
 
+                    // Retrieve Kafka configuration values
+                    var kafkaSettings = new
+                    {
+                        BootstrapServers = configuration["Kafka:BootstrapServers"],
+                        GroupId = configuration["Kafka:GroupId"]
+                    };
+
+                    var serviceProvider = services.BuildServiceProvider();
+                    var kafkaConsumer = serviceProvider.GetRequiredService<IKafkaConsumerService>();
+
                     services.AddHostedService<KafkaConsumerBackgroundService>(provider =>
                     {
-                        return new KafkaConsumerBackgroundService(configuration, provider.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>());
+                        return new KafkaConsumerBackgroundService(configuration, kafkaConsumer, provider.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>());
                     });
                 });
     }
