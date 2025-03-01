@@ -14,8 +14,7 @@ export interface Project {
 }
 
 interface User {
-  token: string; // Only token is available from the login response
-  // You can add other properties if you fetch user details later
+  token: string;
 }
 
 // Define the base URL for the API
@@ -24,7 +23,8 @@ const BASE_URL = 'https://localhost:7188/api';
 const store = createStore({
   state: {
     projects: [] as Project[],
-    user: null as User | null, // User state
+    user: null as User | null,
+    error: null as string | null, // Store error messages
   },
   mutations: {
     setProjects(state, projects: Project[]) {
@@ -33,82 +33,79 @@ const store = createStore({
     addProject(state, project: Project) {
       state.projects.push(project);
     },
-    updateProject(state, updatedProject) {
+    updateProject(state, updatedProject: Project) {
       const index = state.projects.findIndex(p => p.projectId === updatedProject.projectId);
       if (index !== -1) {
-        // Update the existing project
         state.projects.splice(index, 1, updatedProject);
       } else {
-        // Optionally handle case where project is not found
         console.error('Project not found for update:', updatedProject.projectId);
       }
     },
     deleteProject(state, projectId: number) {
       state.projects = state.projects.filter(p => p.projectId !== projectId);
     },
-    setUser(state, user: User | null) { // Mutation to set user
+    setUser(state, user: User | null) {
       state.user = user;
+    },
+    setError(state, error: string | null) {
+      state.error = error;
+    },
+    clearError(state) {
+      state.error = null;
     },
   },
   actions: {
-    async fetchProjects({ commit }) {
-      const response = await axios.get(`${BASE_URL}/projects/GetAllKafkaProjects`, {
-        headers: {
-          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
-        }
-      });
-      commit('setProjects', response.data);
+    async fetchProjects({ commit, state }) {
+      try {
+        const response = await axios.get(`${BASE_URL}/projects/GetAllKafkaProjects`, {
+          headers: { Authorization: `Bearer ${state.user?.token}` },
+        });
+        commit('setProjects', response.data);
+      } catch (error) {
+        commit('setError', 'Failed to fetch projects.');
+      }
     },
-    async createProject({ commit }, project: Project) {
-      const response = await axios.post(`${BASE_URL}/projects/CreateKafkaProject`, project, {
-        headers: {
-          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
-        }
-      });
-      commit('addProject', response.data);
+    async createProject({ commit, state }, project: Project) {
+      try {
+        const response = await axios.post(`${BASE_URL}/projects/CreateKafkaProject`, project, {
+          headers: { Authorization: `Bearer ${state.user?.token}` },
+        });
+        commit('addProject', response.data);
+      } catch (error) {
+        commit('setError', 'Failed to create project.');
+      }
     },
-    async updateProject({ commit }, project: Project) {
-      console.log('Updating project:', project);
-      // Ensure projectId is not modified
-      const updatedProject = { ...project, projectId: project.projectId }; 
-      await axios.put(`${BASE_URL}/projects/UpdateKafkaProject`, updatedProject, {
-        headers: {
-          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
-        }
-      });
-      commit('updateProject', updatedProject);
+    async updateProject({ commit, state }, project: Project) {
+      try {
+        const updatedProject = { ...project, projectId: project.projectId };
+        await axios.put(`${BASE_URL}/projects/UpdateKafkaProject`, updatedProject, {
+          headers: { Authorization: `Bearer ${state.user?.token}` },
+        });
+        commit('updateProject', updatedProject);
+      } catch (error) {
+        commit('setError', 'Failed to update project.');
+      }
     },
-    async deleteProject({ commit }, projectId: number) {
-      await axios.delete(`${BASE_URL}/projects/DeleteKafkaProject/${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${this.state.user?.token}` // Include token in the request
-        }
-      });
-      commit('deleteProject', projectId);
+    async deleteProject({ commit, state }, projectId: number) {
+      try {
+        await axios.delete(`${BASE_URL}/projects/DeleteKafkaProject/${projectId}`, {
+          headers: { Authorization: `Bearer ${state.user?.token}` },
+        });
+        commit('deleteProject', projectId);
+      } catch (error) {
+        commit('setError', 'Failed to delete project.');
+      }
     },
     async login({ commit }, { email, password, router }) {
       try {
         const response = await axios.post(`${BASE_URL}/Auth/login`, { email, password });
-        
-        // Extract the access token from the response
         const accessToken = response.data.accessToken;
-
-        // Create a user object with the token
-        const user = {
-          token: accessToken, // Store the access token
-        };
-        
-        commit('setUser', user); // Set user state with token
-        
-        // Set the token in the Axios default headers for future requests
+        const user = { token: accessToken };
+        commit('setUser', user);
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        
-        // Redirect to ProjectList after successful login
-        router.push('/'); // Redirect to the root path (ProjectList)
-        
+        router.push('/');
       } catch (error) {
-        console.error('Login failed:', error);
-        throw new Error('Login failed. Please check your credentials and try again.');
+        commit('setError', 'Login failed. Please check your credentials.');
       }
     },
   },
