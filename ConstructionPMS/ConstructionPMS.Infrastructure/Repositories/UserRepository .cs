@@ -17,12 +17,12 @@ namespace ConstructionPMS.Infrastructure.Repositories
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users.AsNoTracking().ToListAsync();
         }
 
         public async Task<User> GetByIdAsync(Guid userId)
         {
-            return await _context.Users.FindAsync(userId);
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<User> AddAsync(User user)
@@ -50,12 +50,12 @@ namespace ConstructionPMS.Infrastructure.Repositories
 
         public async Task<User> GetByUsernameAsync(string username)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == username);
         }
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

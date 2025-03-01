@@ -24,7 +24,7 @@ namespace ConstructionPMS.Infrastructure.Repositories
 
         public async Task<IEnumerable<Project>> GetAllAsync()
         {
-            return await _context.Projects.ToListAsync();
+            return await _context.Projects.AsNoTracking().ToListAsync();
         }
 
         public async Task<Project> GetByIdAsync(int projectId)
