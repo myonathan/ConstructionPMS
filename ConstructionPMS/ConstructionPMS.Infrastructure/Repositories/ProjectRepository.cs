@@ -29,7 +29,9 @@ namespace ConstructionPMS.Infrastructure.Repositories
 
         public async Task<Project> GetByIdAsync(int projectId)
         {
-            return await _context.Projects.FindAsync(projectId);
+            return await _context.Projects
+                .AsNoTracking() // This will ensure that the entity is not tracked by the context
+                .FirstOrDefaultAsync(p => p.ProjectId == projectId);
         }
 
         public async Task UpdateAsync(Project project)
