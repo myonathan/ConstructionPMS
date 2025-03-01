@@ -17,8 +17,8 @@ Ensure you have the following installed on your Windows system:
 
 ![Alt text](projectList_sampleImage.png)
 
-![Alt text](projectcreate_sampleimage.png)
+![Alt text](projectcreate_sampleimage_.png)
 
-![Alt text](projectupdate_sampleimange.png)
+![Alt text](projectupdate_sampleimage_.png)
 
 ![Alt text](swagger.png)
