@@ -19,8 +19,11 @@ namespace ConstructionPMS.Infrastructure.Extensions
             // Configure Elasticsearch
             services.AddSingleton<IElasticClient>(provider =>
             {
-                return new ElasticClient(new ConnectionSettings(new Uri(configuration["Elasticsearch:Url"]))
-                    .DefaultIndex(configuration["Elasticsearch:IndexName"]));
+                var conn = new ConnectionSettings(new Uri(configuration["Elasticsearch:Url"]))
+                                .DefaultIndex(configuration["Elasticsearch:IndexName"])
+                                .DisableDirectStreaming();
+
+                return new ElasticClient(conn);
             });
 
             // Register repositories
@@ -43,7 +46,7 @@ namespace ConstructionPMS.Infrastructure.Extensions
             {
                 var projectRepository = provider.GetRequiredService<IProjectRepository>();
                 var elasticClient = provider.GetRequiredService<IElasticClient>();
-                return new KafkaConsumer(kafkaSettings.BootstrapServers, kafkaSettings.GroupId, projectRepository, elasticClient);
+                return new KafkaConsumer(kafkaSettings.BootstrapServers, kafkaSettings.GroupId, projectRepository, elasticClient, configuration["Elasticsearch:IndexName"]);
             });
 
             return services;

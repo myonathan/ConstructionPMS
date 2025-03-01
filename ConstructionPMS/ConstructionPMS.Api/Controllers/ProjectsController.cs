@@ -182,18 +182,15 @@ namespace ConstructionPMS.Api.Controllers
         public async Task<IActionResult> DeleteKafkaProject(int id)
         {
             var project = await _projectService.GetProjectByIdAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
 
             await _projectService.DeleteProjectAsync(id);
+            var input = project?.ProjectName ?? id.ToString();
 
             // Send a notification after deleting a project
-            await _notificationService.SendNotificationAsync($"Project '{project.ProjectName}' has been deleted.");
+            await _notificationService.SendNotificationAsync($"Project '{input}' has been deleted.");
 
             // Publish to Kafka topic for deletion in Elasticsearch
-            var message = $"Deleted project: {project.ProjectId}";
+            var message = $"Deleted project: {id}";
 
             await _kafkaProducer.ProduceAsync(_configuration["Kafka:Topic"], new Message<Null, string> { Value = message });
 
