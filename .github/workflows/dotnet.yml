@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET CI
 
 on:
   push:
@@ -15,19 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 8.0.x  # Adjust based on your project’s .NET version
 
-    - name: Restore dependencies
+    - name: Restore Dependencies
       run: dotnet restore ConstructionPMS/ConstructionPMS.sln
 
-    - name: Build
-      run: dotnet build ConstructionPMS/ConstructionPMS.sln --configuration Release --no-restore
+    - name: Build Project
+      run: dotnet build ConstructionPMS/ConstructionPMS.sln --no-restore --configuration Release
 
-    - name: Test
-      run: dotnet test ConstructionPMS/ConstructionPMS.sln --no-build --verbosity normal
+    - name: Run Tests
+      run: dotnet test ConstructionPMS/ConstructionPMS.Tests --no-build --configuration Release --verbosity normal
