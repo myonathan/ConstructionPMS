@@ -62,7 +62,7 @@ export default defineComponent({
 
     onMounted(() => {
       // Wait for 1 second before fetching projects
-      setTimeout(fetchProjects, 1000);
+      setTimeout(fetchProjects, 2000);
     });
 
     return { projects, loading, error, deleteProject };

@@ -68,6 +68,10 @@ namespace ConstructionPMS.Infrastructure.Kafka
                 {
                     await HandleDeletionAsync(message);
                 }
+                else if (IsUpdateMessage(message))
+                {
+                    await HandleUpdateAsync(message);
+                }
                 else
                 {
                     await HandleIndexingAsync(message);
@@ -94,6 +98,29 @@ namespace ConstructionPMS.Infrastructure.Kafka
             }
         }
 
+        private async Task HandleUpdateAsync(string message)
+        {
+            var projectId = ExtractProjectId(message);
+            var documents = await SearchDocumentsByProjectIdAsync(projectId);
+           
+            var project = await _projectRepository.GetByIdAsync(projectId);
+
+            if (documents.Any())
+            {
+                await UpdateDocumentAsync(documents, project);
+            }
+            else
+            {
+                Console.WriteLine($"No documents found with ProjectId '{projectId}'.");
+            }
+        }
+
+        private async Task UpdateDocumentAsync(List<IHit<Project>> documents, Project project)
+        {
+            var updateTasks = documents.Select(doc => UpdateDocumentAsync(doc.Id, project)); // Use doc.Id to get the document ID
+            await Task.WhenAll(updateTasks);
+        }
+
         private async Task HandleIndexingAsync(string message)
         {
             var projectId = ExtractProjectId(message);
@@ -101,8 +128,15 @@ namespace ConstructionPMS.Infrastructure.Kafka
 
             if (project != null)
             {
-                await _elasticClient.IndexDocumentAsync(project);
-                Console.WriteLine($"Indexed project '{project.ProjectId}' in Elasticsearch.");
+                var indexResponse = await _elasticClient.IndexDocumentAsync(project);
+                if (indexResponse.IsValid)
+                {
+                    Console.WriteLine($"Indexed project '{project.ProjectId}' in Elasticsearch.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to index project '{project.ProjectId}': {indexResponse.DebugInformation}");
+                }
             }
             else
             {
@@ -128,11 +162,11 @@ namespace ConstructionPMS.Infrastructure.Kafka
 
         private async Task DeleteDocumentsAsync(List<IHit<Project>> documents)
         {
-            var deleteTasks = documents.Select(doc => DeleteDocumentAsync(doc.Id, doc.Source)); // Use project.Id to get the document ID
+            var deleteTasks = documents.Select(doc => DeleteDocumentAsync(doc.Id, doc.Source)); // Use doc.Id to get the document ID
             await Task.WhenAll(deleteTasks);
         }
 
-        private async Task DeleteDocumentAsync(string docId, Project project) // Change parameter type to string for the ID
+        private async Task DeleteDocumentAsync(string docId, Project project) // Keep the project parameter
         {
             var deleteResponse = await _elasticClient.DeleteAsync<Project>(docId, d => d.Index(_indexName)); // Specify the index name
 
@@ -146,9 +180,31 @@ namespace ConstructionPMS.Infrastructure.Kafka
             }
         }
 
+        private async Task UpdateDocumentAsync(string docId, Project project) // Keep the project parameter
+        {
+            var updateResponse = await _elasticClient.UpdateAsync<Project>(docId, u => u
+                .Index(_indexName) // Specify the index name
+                .Doc(project) // Specify the document to update
+            );
+
+            if (updateResponse.IsValid)
+            {
+                Console.WriteLine($"Successfully updated project with ID '{project.ProjectId}'.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to update project with ID '{project.ProjectId}': {updateResponse.DebugInformation}");
+            }
+        }
+
         private bool IsDeletionMessage(string message)
         {
             return message.StartsWith("Deleted project:", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsUpdateMessage(string message)
+        {
+            return message.StartsWith("Updated project:", StringComparison.OrdinalIgnoreCase);
         }
 
         private int ExtractProjectId(string message)
