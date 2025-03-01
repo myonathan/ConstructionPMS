@@ -34,6 +34,31 @@
           />
         </div>
         <div>
+          <label for="projectCategory" class="block text-sm font-medium text-gray-700">Project Category</label>
+          <select
+            id="projectCategory"
+            v-model="project.projectCategory"
+            @change="checkOtherCategoryVisibility"
+            required
+            class="mt-1 border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>Select a category</option>
+            <option value="0">Education</option>
+            <option value="1">Health</option>
+            <option value="2">Office</option>
+            <option value="3">Others</option>
+          </select>
+        </div>
+        <div v-if="showOtherCategory"> <!-- Show this input if "Others" is selected -->
+          <label for="otherCategory" class="block text-sm font-medium text-gray-700">Specify Other Category</label>
+          <input
+            id="otherCategory"
+            v-model="project.otherCategory"
+            placeholder="Enter other category"
+            class="mt-1 border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
           <label for="projectDetails" class="block text-sm font-medium text-gray-700">Project Details</label>
           <textarea
             id="projectDetails"
@@ -62,7 +87,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, nextTick, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -84,6 +109,9 @@ export default defineComponent({
       otherCategory: ''
     });
 
+    // Show/hide the Other Category input
+    const showOtherCategory = ref(false);
+
     // If in edit mode, populate the project with the data from the store
     if (isEdit) {
       const existingProject = store.state.projects.find(p => p.projectId === project.value.projectId);
@@ -92,32 +120,50 @@ export default defineComponent({
       }
     }
 
+    // Method to check if the Other Category input should be shown
+    const checkOtherCategoryVisibility = () => {
+      if (parseInt(project.value.projectCategory, 10) === 3) {
+        console.log('others selected');
+        showOtherCategory.value = true; // Show if "Others" is selected
+      } else {
+        showOtherCategory.value = false; // Hide if any other category is selected
+        project.value.otherCategory = ''; // Clear the otherCategory value
+      }
+    };
+
+    // Call the visibility check after initialization
+    onMounted(() => {
+      nextTick(() => {
+        checkOtherCategoryVisibility();
+        console.log('Component and children are fully rendered');
+      });
+    });
+
     // Computed property to format the construction start date for the date input
     const formattedConstructionStartDate = computed({
       get: () => {
-        // Convert ISO date to YYYY-MM-DD format
         return project.value.constructionStartDate ? project.value.constructionStartDate.split('T')[0] : '';
       },
       set: (value) => {
-        // Update the project construction start date when the input changes
         project.value.constructionStartDate = value;
       }
     });
 
     const submitForm = async () => {
+      project.value.projectCategory = parseInt(project.value.projectCategory, 10); // Ensure it's an integer
       if (isEdit) {
         await store.dispatch('updateProject', project.value);
       } else {
         await store.dispatch('createProject', project.value);
       }
-      router.push('/');
+      router.push('/'); // Navigate back to the project list after submission
     };
 
     const goBack = () => {
       router.push('/'); // Navigate back to the Project List
     };
 
-    return { project, submitForm, isEdit, goBack, formattedConstructionStartDate };
+    return { project, submitForm, isEdit, goBack, formattedConstructionStartDate, showOtherCategory, checkOtherCategoryVisibility };
   },
 });
 </script>
