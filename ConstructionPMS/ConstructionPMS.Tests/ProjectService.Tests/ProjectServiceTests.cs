@@ -30,7 +30,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task CreateProjectAsync_ShouldAddProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Test Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
+            var project = new Project { ProjectId = 123456, ProjectName = "Test Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
             _projectRepositoryMock.Setup(repo => repo.AddAsync(project)).Returns(Task.CompletedTask);
 
             // Act
@@ -47,8 +47,8 @@ namespace ConstructionPMS.Tests.Services
             // Arrange
             var projects = new List<Project>
             {
-                new Project { ProjectId = 1, ProjectName = "Project 1" },
-                new Project { ProjectId = 2, ProjectName = "Project 2" }
+                new Project { ProjectId = 123456, ProjectName = "Project 1" },
+                new Project { ProjectId = 223456, ProjectName = "Project 2" }
             };
             _projectRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(projects);
 
@@ -63,7 +63,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task GetProjectByIdAsync_ShouldReturnProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Test Project" };
+            var project = new Project { ProjectId = 123456, ProjectName = "Test Project" };
             _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(project);
 
             // Act
@@ -77,7 +77,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task UpdateProjectAsync_ShouldUpdateProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Updated Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
+            var project = new Project { ProjectId = 123456, ProjectName = "Updated Project", ConstructionStartDate = DateTime.Now.AddDays(1), ProjectCreatorId = Guid.NewGuid() };
             _projectRepositoryMock.Setup(repo => repo.UpdateAsync(project)).Returns(Task.CompletedTask);
 
             // Act
@@ -91,7 +91,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task DeleteProjectAsync_ShouldDeleteProject()
         {
             // Arrange
-            var projectId = 1;
+            var projectId = 123456;
             _projectRepositoryMock.Setup(repo => repo.DeleteAsync(projectId)).Returns(Task.CompletedTask);
 
             // Act
@@ -107,8 +107,8 @@ namespace ConstructionPMS.Tests.Services
             // Arrange
             var projects = new List<Project>
             {
-                new Project { ProjectId = 1, ProjectName = "Project 1" },
-                new Project { ProjectId = 2, ProjectName = "Project 2" }
+                new Project { ProjectId = 123456, ProjectName = "Project 1" },
+                new Project { ProjectId = 223456, ProjectName = "Project 2" }
             };
 
             var searchResponse = new Mock<ISearchResponse<Project>>();
@@ -131,7 +131,7 @@ namespace ConstructionPMS.Tests.Services
         public async Task GetProjectByIdFromElasticSearchAsync_ShouldReturnProject()
         {
             // Arrange
-            var project = new Project { ProjectId = 1, ProjectName = "Test Project" };
+            var project = new Project { ProjectId = 123456, ProjectName = "Test Project" };
 
             var searchResponse = new Mock<ISearchResponse<Project>>();
             searchResponse.Setup(s => s.Documents).Returns(new List<Project> { project });
