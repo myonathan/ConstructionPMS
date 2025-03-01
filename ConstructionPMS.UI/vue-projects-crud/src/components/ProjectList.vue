@@ -60,7 +60,10 @@ export default defineComponent({
       }
     };
 
-    onMounted(fetchProjects); // Fetch projects when the component is mounted
+    onMounted(() => {
+      // Wait for 1 second before fetching projects
+      setTimeout(fetchProjects, 1000);
+    });
 
     return { projects, loading, error, deleteProject };
   },
